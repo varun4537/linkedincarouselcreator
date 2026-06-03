@@ -1,0 +1,320 @@
+/* Custom premium stylesheet for LinkedIn Carousel Generator slides */
+
+:root {
+    --color-deep-black: #050708;
+    --color-off-white: #F4F4F4;
+    --color-muted-blue-gray: #7E8A8C;
+    --color-soft-steel-gray: #A5B1B4;
+    --color-canvas-bg: #E9E9E9;
+    --font-heading: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Canvas styling */
+.carousel-canvas {
+    background-color: var(--color-canvas-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 1080 x 1080 Square canvas layout */
+.canvas-square {
+    width: 1080px;
+    height: 1080px;
+}
+
+/* 1080 x 1350 Portrait canvas layout */
+.canvas-portrait {
+    width: 1080px;
+    height: 1350px;
+}
+
+/* Floating Card Container */
+.slide-card {
+    background-color: var(--color-deep-black);
+    color: var(--color-off-white);
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    
+    /* Spotlight Gradient Lighting Effect - Cinematic glow */
+    background-image: 
+        radial-gradient(circle at 80% 30%, rgba(165, 177, 180, 0.08) 0%, rgba(5, 7, 8, 0) 70%),
+        radial-gradient(circle at 20% 80%, rgba(126, 138, 140, 0.06) 0%, rgba(5, 7, 8, 0) 60%);
+    
+    /* Double Premium Shadows */
+    box-shadow: 
+        0 24px 80px rgba(0, 0, 0, 0.16), 
+        0 30px 140px rgba(0, 0, 0, 0.08);
+        
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Margins for Square Canvas (approx 92-94% space) */
+.canvas-square .slide-card {
+    width: 980px;
+    height: 980px;
+}
+
+/* Margins for Portrait Canvas (approx 86-88% height space to look like high-end gallery frame) */
+.canvas-portrait .slide-card {
+    width: 920px;
+    height: 1180px;
+}
+
+/* 15% Mobile Safe Zone Wrapper (Inner 70% viewport) */
+.safe-zone {
+    width: 100%;
+    height: 100%;
+    padding: 15%; /* 15% on each edge */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+}
+
+/* Safe zone size constraints:
+   For 980x980 card, padding is 147px (leaves 686x686 content area)
+   For 920x1180 card, padding is 138px / 177px (leaves 644x826 content area)
+*/
+
+/* Decorative patterns that can bleed into outer boundaries but do not block text */
+.decor-dot-grid {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background-image: radial-gradient(var(--color-muted-blue-gray) 1px, transparent 1px);
+    background-size: 16px 16px;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 1;
+}
+.decor-top-right {
+    top: 40px;
+    right: 40px;
+}
+.decor-bottom-left {
+    bottom: 40px;
+    left: 40px;
+}
+
+.decor-line {
+    position: absolute;
+    background-color: var(--color-soft-steel-gray);
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 1;
+}
+.line-diagonal {
+    width: 150%;
+    height: 1px;
+    transform: rotate(45deg);
+    top: -20%;
+    left: -20%;
+}
+
+/* TYPOGRAPHY RULES */
+
+/* UI Labels (Top / Bottom Header/Footer details) */
+.ui-label {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-muted-blue-gray);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ui-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(165, 177, 180, 0.15);
+    padding-bottom: 16px;
+}
+
+.ui-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(165, 177, 180, 0.15);
+    padding-top: 16px;
+}
+
+/* Main content wrapper */
+.content-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+    padding: 24px 0;
+}
+
+/* Giant numbers */
+.giant-number {
+    font-family: var(--font-heading);
+    font-size: 140px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--color-muted-blue-gray);
+    letter-spacing: -0.05em;
+    opacity: 0.85;
+}
+
+/* Slide Headlines */
+.headline {
+    font-family: var(--font-heading);
+    font-size: 78px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--color-off-white);
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+
+/* Stacked lines and highlighting */
+.headline span.accent {
+    color: var(--color-muted-blue-gray);
+}
+
+/* Body texts */
+.body-text {
+    font-family: var(--font-body);
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-off-white);
+    opacity: 0.9;
+    max-width: 600px;
+}
+
+/* Slide Specific Layouts */
+
+/* Layout: Cover Slide */
+.job-cover .headline {
+    font-size: 92px;
+    font-weight: 900;
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+}
+.job-cover .cta-swipe {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-off-white);
+    background-color: rgba(126, 138, 140, 0.2);
+    padding: 8px 20px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(165, 177, 180, 0.25);
+}
+
+/* Layout: Stat Slide */
+.stat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.stat-value {
+    font-family: var(--font-heading);
+    font-size: 160px;
+    font-weight: 900;
+    color: var(--color-muted-blue-gray);
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+}
+.stat-label {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-off-white);
+}
+
+/* Layout: Checklist / List Slide */
+.list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+.list-bullet {
+    background-color: var(--color-muted-blue-gray);
+    color: var(--color-deep-black);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+.list-content {
+    font-size: 26px;
+    line-height: 1.4;
+}
+
+/* Layout: Closing Slide */
+.job-closing .content-area {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+.job-closing .headline {
+    font-size: 64px;
+    text-align: center;
+}
+.closing-brand {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--color-muted-blue-gray);
+    text-transform: uppercase;
+}
+.closing-sources {
+    margin-top: 24px;
+    font-size: 16px;
+    color: var(--color-muted-blue-gray);
+    opacity: 0.7;
+    max-width: 500px;
+    word-break: break-all;
+}
+
+/* Layout adjustments for portrait aspect ratio text sizing */
+.canvas-portrait .headline {
+    font-size: 86px;
+}
+.canvas-portrait .job-cover .headline {
+    font-size: 98px;
+}
+.canvas-portrait .body-text {
+    font-size: 30px;
+}

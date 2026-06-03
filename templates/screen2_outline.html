@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Review Slide Outline — LinkedIn Carousel Creator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Review & Refine Slide Outline</h1>
+    <p style="color: var(--text-secondary);">Verify that all claims are accurate to the source material. Edit copy directly or request LLM slide-level updates.</p>
+</div>
+
+<ul class="progress-bar">
+    <li class="progress-step completed">
+        <div class="progress-step-num">1</div>
+        <span>Brief Context</span>
+    </li>
+    <li class="progress-step active">
+        <div class="progress-step-num">2</div>
+        <span>Outline & Facts Review</span>
+    </li>
+    <li class="progress-step">
+        <div class="progress-step-num">3</div>
+        <span>Render & Export</span>
+    </li>
+</ul>
+
+<div id="outline-review-container" class="screen2-grid">
+    <!-- LEFT PANEL: FACTS LEDGER & HUMANIZER WARNINGS -->
+    <div class="side-panel">
+        <!-- Facts Ledger -->
+        <div class="ledger-card">
+            <div class="panel-header">
+                <div class="panel-title">Facts Ledger</div>
+                <span class="status-badge" style="font-size: 11px; padding: 2px 8px;">{{ facts_ledger|length }} Claims</span>
+            </div>
+            
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                Every claim here was extracted directly from the sources. If conflicting facts were found, they are highlighted in red below.
+            </p>
+
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">
+                {% for claim in facts_ledger %}
+                <div class="ledger-item {% if claim.conflict %}conflict{% endif %}">
+                    <div>{{ claim.claim }}</div>
+                    <div class="ledger-meta">Source: {{ claim.source }}</div>
+                    {% if claim.conflict %}
+                    <div class="ledger-conflict-desc">⚠️ Conflict: {{ claim.conflict_details }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Humanizer Warning Alerts -->
+        <div class="humanizer-card">
+            <div class="panel-header">
+                <div class="panel-title">Humanizer Scanner</div>
+                <span class="status-badge" style="font-size: 11px; padding: 2px 8px; background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--warning);">
+                    {{ humanizer_flags|length }} Flags
+                </span>
+            </div>
+            
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                Phrases detected by the <strong>the-humanizer-v2.5.md</strong> checklist. We recommend applying the rewrites to avoid generic AI texturing.
+            </p>
+
+            <div style="max-height: 350px; overflow-y: auto; padding-right: 8px;">
+                {% if humanizer_flags|length == 0 %}
+                <div style="color: var(--success); font-size: 13px; font-weight: 600; text-align: center; padding: 20px 0;">
+                    ✓ Zero AI texture patterns detected. Excellent.
+                </div>
+                {% else %}
+                    {% for flag in humanizer_flags %}
+                    <div class="humanizer-item">
+                        <div class="humanizer-item-title">Flagged: "{{ flag.original_phrase }}"</div>
+                        <div style="color: var(--text-secondary); font-size: 12px;">Reason: {{ flag.reason }}</div>
+                        <div class="humanizer-suggested">💡 Suggestion: <strong>{{ flag.suggested_rewrite }}</strong></div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL: EDITABLE SLIDE ROWS -->
+    <div>
+        <form id="outline-form" action="/render-carousel" method="POST" class="outline-editor-container">
+            <!-- Hidden values to pass forward state -->
+            <input type="hidden" id="generation_id" name="generation_id" value="{{ generation_id }}">
+            <input type="hidden" id="stage2_model" name="stage2_model" value="{{ stage2_model }}">
+            <input type="hidden" name="design_system" value="{{ design_system }}">
+            <input type="hidden" name="format" value="{{ format }}">
+            
+            <div class="panel-header" style="margin-bottom: 0;">
+                <div class="panel-title" style="color: var(--text-primary);">Slide Outline Structure</div>
+                <div style="font-size: 13px; color: var(--text-secondary);">Count: {{ outline|length }} slides (adaptive)</div>
+            </div>
+
+            {% for slide in outline %}
+            <div class="slide-row" data-slide-num="{{ slide.slide_number }}">
+                <div class="slide-row-header">
+                    <div>
+                        <span class="slide-badge">Slide {{ slide.slide_number }}</span>
+                        <span class="slide-job-badge">{{ slide.job }}</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-regen-slide" data-slide-num="{{ slide.slide_number }}" style="padding: 4px 12px; font-size: 12px;">
+                        ⚡ Regenerate Copy
+                    </button>
+                </div>
+
+                <!-- Input for Slide job name (read only for safety, but submitted) -->
+                <input type="hidden" name="slide_{{ slide.slide_number }}_job" value="{{ slide.job }}">
+
+                <!-- Headline field -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Headline (max 12 words)</label>
+                    <input type="text" name="slide_{{ slide.slide_number }}_headline" value="{{ slide.headline }}" required>
+                </div>
+
+                <!-- Body Copy field -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Body copy (1-3 sentences)</label>
+                    <textarea name="slide_{{ slide.slide_number }}_body" rows="2" required>{{ slide.body }}</textarea>
+                </div>
+
+                <!-- Optional metrics/stat field -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Metrics or Quote Callout (Optional)</label>
+                    <input type="text" name="slide_{{ slide.slide_number }}_stat" value="{{ slide.stat or '' }}" placeholder="e.g. 14.2% or direct quote">
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Form Action buttons -->
+            <div class="btn-group">
+                <a href="/" class="btn btn-secondary">← Back to Brief</a>
+                <button type="submit" id="approve-outline-btn" class="btn btn-primary">Approve Outline & Render →</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

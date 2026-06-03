@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print Slide Deck</title>
+    <link rel="stylesheet" href="/static/css/carousel.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-canvas-bg);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .print-page {
+            display: block;
+            width: 100%;
+            height: 100%;
+            page-break-after: always;
+            page-break-inside: avoid;
+            break-after: page;
+            margin: 0;
+            padding: 0;
+            box-shadow: none !important;
+        }
+        
+        /* Remove shadows when printing to match professional PDF profiles */
+        .print-page .slide-card {
+            box-shadow: none !important;
+        }
+
+        /* Prevent trailing blank page */
+        .print-page:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+    </style>
+</head>
+<body>
+    {% for slide in slides %}
+    <div class="print-page">
+        <div class="carousel-canvas {% if format == '1080x1350' %}canvas-portrait{% else %}canvas-square{% endif %}" style="box-shadow: none !important;">
+            
+            <div class="slide-card job-{{ slide.job|lower }}">
+                <!-- Design elements -->
+                <div class="decor-dot-grid decor-top-right"></div>
+                <div class="decor-line line-diagonal"></div>
+                
+                <!-- Safe Zone Wrapper -->
+                <div class="safe-zone">
+                    <!-- Header UI -->
+                    <div class="ui-header">
+                        <div class="ui-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
+                                <circle cx="12" cy="12" r="10" stroke="#7E8A8C" stroke-width="2" />
+                                <circle cx="12" cy="12" r="4" fill="#E27D60" />
+                            </svg>
+                            E2E Ecommerce
+                        </div>
+                        <div class="ui-label">LinkedIn Playbook</div>
+                    </div>
+                    
+                    <!-- Middle content block -->
+                    <div class="content-area">
+                        {% if slide.job == "Cover" %}
+                            <div class="headline">{{ slide.headline }}</div>
+                            <div class="body-text">{{ slide.body }}</div>
+                            <div>
+                                <span class="cta-swipe">
+                                    Swipe
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        <polyline points="12 5 19 12 12 19"></polyline>
+                                    </svg>
+                                </span>
+                            </div>
+                        {% elif slide.job == "Closing" %}
+                            <div class="closing-brand">E2E ECOMMERCE</div>
+                            <div class="headline" style="font-size: 58px;">{{ slide.headline }}</div>
+                            <div class="body-text" style="max-width: none;">{{ slide.body }}</div>
+                            {% if urls|length > 0 %}
+                            <div class="closing-sources">
+                                <strong>Sources:</strong> {{ urls|join(", ") }}
+                            </div>
+                            {% endif %}
+                        {% elif slide.job == "Stat" %}
+                            <div class="stat-container">
+                                <div class="stat-value">{{ slide.stat or "10x" }}</div>
+                                <div class="headline" style="font-size: 48px;">{{ slide.headline }}</div>
+                            </div>
+                            <div class="body-text">{{ slide.body }}</div>
+                        {% else %}
+                            <div class="giant-number">{{ "%02d." | format(loop.index) }}</div>
+                            <div class="headline">{{ slide.headline }}</div>
+                            <div class="body-text">{{ slide.body }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Footer UI -->
+                    <div class="ui-footer">
+                        <div class="ui-label" style="font-size: 14px; text-transform: lowercase;">e2eecommerce.com</div>
+                        <div class="ui-label">{{ loop.index }} / {{ slides|length }}</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>

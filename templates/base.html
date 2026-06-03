@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LinkedIn Carousel Creator{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="20" height="20" rx="4" fill="#E27D60" />
+                    <circle cx="8" cy="8" r="2" fill="#0B0E14" />
+                    <rect x="6" y="12" width="12" height="6" rx="1" fill="#0B0E14" />
+                </svg>
+                <span>CarouselCreator</span>
+                <span class="status-badge">Internal Tool</span>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <a href="/design" class="btn btn-secondary" style="font-size: 13px; padding: 6px 16px;">Design Settings</a>
+                <a href="/" class="btn btn-secondary" style="font-size: 13px; padding: 6px 16px;">New Carousel</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing, please wait...</div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

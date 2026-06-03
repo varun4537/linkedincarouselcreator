@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Design System Settings — LinkedIn Carousel Creator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Design System Settings (design.md)</h1>
+    <p style="color: var(--text-secondary);">Directly edit and update the core design guidelines used by the LLM and the layout templates.</p>
+</div>
+
+<div class="card-wrapper">
+    <form action="/design" method="POST">
+        <div class="form-group">
+            <label for="design_content">Design system guidelines content (Markdown format)</label>
+            <textarea id="design_content" name="content" rows="22" style="font-family: monospace; font-size: 13px; line-height: 1.5; background: #0B0E14; border-color: var(--border-color); color: #C9D1D9;" placeholder="Paste design.md rules here..." required>{{ content }}</textarea>
+        </div>
+
+        <div class="btn-group">
+            <a href="/" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Guidelines</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

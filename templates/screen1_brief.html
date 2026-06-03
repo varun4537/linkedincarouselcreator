@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Create Carousel Brief — LinkedIn Carousel Creator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create Carousel Brief</h1>
+    <p style="color: var(--text-secondary);">Fill out the brief context and upload source excerpts. We will construct a factually faithful slide outline.</p>
+</div>
+
+<ul class="progress-bar">
+    <li class="progress-step active">
+        <div class="progress-step-num">1</div>
+        <span>Brief Context</span>
+    </li>
+    <li class="progress-step">
+        <div class="progress-step-num">2</div>
+        <span>Outline & Facts Review</span>
+    </li>
+    <li class="progress-step">
+        <div class="progress-step-num">3</div>
+        <span>Render & Export</span>
+    </li>
+</ul>
+
+<form id="brief-form" action="/generate-outline" method="POST" class="card-wrapper">
+    <!-- Model Selection Grid -->
+    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--accent); font-size: 16px; text-transform: uppercase;">LLM Model Calibration</h3>
+    <div class="form-row" style="margin-bottom: 30px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="stage1_model">Stage 1 Model (Outline & Facts Ledger)</label>
+            <select name="stage1_model" id="stage1_model">
+                <option value="anthropic/claude-sonnet-4.6" selected>Claude Sonnet 4.6 (anthropic/claude-sonnet-4.6)</option>
+                <option value="google/gemini-3-flash-preview">Gemini 3 Flash Preview (google/gemini-3-flash-preview)</option>
+                <option value="deepseek/deepseek-v4-flash">Deepseek v4 Flash (deepseek/deepseek-v4-flash)</option>
+                <option value="openrouter/owl-alpha">Owl Alpha (openrouter/owl-alpha)</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="stage2_model">Stage 2 Model (Per-Slide Humanization)</label>
+            <select name="stage2_model" id="stage2_model">
+                <option value="google/gemini-3-flash-preview" selected>Gemini 3 Flash Preview (google/gemini-3-flash-preview)</option>
+                <option value="deepseek/deepseek-v4-flash">Deepseek v4 Flash (deepseek/deepseek-v4-flash)</option>
+                <option value="openrouter/owl-alpha">Owl Alpha (openrouter/owl-alpha)</option>
+                <option value="anthropic/claude-sonnet-4.6">Claude Sonnet 4.6 (anthropic/claude-sonnet-4.6)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Core Content Inputs -->
+    <div class="form-group">
+        <label for="topic">Topic / Working Title *</label>
+        <input type="text" id="topic" name="topic" placeholder="e.g., Three mistakes founders make when auditing SEO conversions" required>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="audience">Audience *</label>
+            <select name="audience" id="audience" required>
+                <option value="SEO pros">SEO pros</option>
+                <option value="founders" selected>Founders / Operators</option>
+                <option value="content marketers">Content marketers</option>
+                <option value="e-commerce ops">E-commerce ops</option>
+                <option value="general business">General business</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="angle">Angle / Core Takeaway *</label>
+            <input type="text" id="angle" name="angle" placeholder="e.g., warn brands not to focus on search volume and optimize for intent instead" required>
+        </div>
+    </div>
+
+    <!-- Source Excerpts (Dynamically Expandable) -->
+    <div id="source-blocks-container">
+        <h3 style="margin: 30px 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Source Content Excerpts *</h3>
+        <div class="form-group">
+            <label>Source Block 1</label>
+            <textarea name="sources" rows="4" placeholder="Paste source article paragraphs here (not full pages)..." required></textarea>
+        </div>
+    </div>
+    <button type="button" id="add-source-block" class="btn btn-secondary" style="margin-bottom: 30px; font-size: 13px;">+ Add Another Source Block</button>
+
+    <!-- Source Citation URLs (Optional) -->
+    <div id="source-urls-container">
+        <h3 style="margin: 20px 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Source Citation URLs</h3>
+        <div class="url-input-row">
+            <input type="text" name="urls" placeholder="e.g., https://example.com/seo-mistakes" />
+        </div>
+    </div>
+    <button type="button" id="add-source-url" class="btn btn-secondary" style="margin-bottom: 30px; font-size: 13px;">+ Add Citation URL</button>
+
+    <!-- Writer's Draft Notes -->
+    <div class="form-group">
+        <label for="writer_draft">Writer's Draft or LinkedIn Notes (Optional)</label>
+        <textarea id="writer_draft" name="writer_draft" rows="4" placeholder="If you have already drafted a post or have rough notes, paste them here..."></textarea>
+    </div>
+
+    <!-- Design Choices & Format Grid -->
+    <div class="form-row" style="margin-top: 30px;">
+        <div class="form-group">
+            <label>Design System</label>
+            <div class="radio-group">
+                <div class="radio-card selected" data-group="design">
+                    <input type="radio" name="design_system" value="warm_editorial" checked>
+                    <strong>Warm Editorial</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Rust/sand/ink palette, floating cards, spotlights</div>
+                </div>
+                <div class="radio-card" data-group="design" style="opacity: 0.5; cursor: not-allowed;">
+                    <input type="radio" name="design_system" value="system_2" disabled>
+                    <strong>System 2 (TBD)</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Under development</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Output Format</label>
+            <div class="radio-group">
+                <div class="radio-card selected" data-group="format">
+                    <input type="radio" name="format" value="1080x1350" checked>
+                    <strong>Portrait (1080x1350)</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Default. More vertical height on mobile feeds</div>
+                </div>
+                <div class="radio-card" data-group="format">
+                    <input type="radio" name="format" value="1080x1080">
+                    <strong>Square (1080x1080)</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Classic square layout, tighter canvas spacing</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer button -->
+    <div class="btn-group" style="justify-content: flex-end;">
+        <button type="submit" class="btn btn-primary">Generate Slide Outline</button>
+    </div>
+</form>
+{% endblock %}
