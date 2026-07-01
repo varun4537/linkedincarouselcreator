@@ -81,6 +81,17 @@ def parse_body_list(body_text: str):
 
 templates.env.filters["parse_body_list"] = parse_body_list
 
+import inspect
+
+def render_template(template_name: str, request: Request, context: dict):
+    context["request"] = request
+    sig = inspect.signature(templates.TemplateResponse)
+    if "request" in sig.parameters:
+        return templates.TemplateResponse(request=request, name=template_name, context=context)
+    else:
+        return templates.TemplateResponse(name=template_name, context=context)
+
+
 # Initialize OpenRouter Client
 client = OpenRouterClient()
 
@@ -88,10 +99,7 @@ client = OpenRouterClient()
 async def login_get(request: Request, error: Optional[str] = None):
     if request.cookies.get("session_id") == "authenticated":
         return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": error}
-    )
+    return render_template("login.html", request, {"error": error})
 
 @app.post("/login")
 async def login_post(
@@ -107,10 +115,7 @@ async def login_post(
         response.set_cookie(key="session_id", value="authenticated", max_age=86400 * 30, httponly=True)
         return response
     
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": "Invalid username or password"}
-    )
+    return render_template("login.html", request, {"error": "Invalid username or password"})
 
 @app.get("/logout")
 async def logout_get():
@@ -140,10 +145,7 @@ def check_api_key():
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def screen1_brief(request: Request):
     api_key_set = bool(os.getenv("OPENROUTER_API_KEY", "").strip())
-    return templates.TemplateResponse(
-        "screen1_brief.html",
-        {"request": request, "api_key_set": api_key_set}
-    )
+    return render_template("screen1_brief.html", request, {"api_key_set": api_key_set})
 
 @app.post("/generate-outline", dependencies=[Depends(check_authenticated)])
 async def handle_brief_submit(
@@ -229,10 +231,7 @@ async def screen2_outline(request: Request, generation_id: str):
     with open(state_file, "r", encoding="utf-8") as f:
         state = json.load(f)
 
-    return templates.TemplateResponse(
-        "screen2_outline.html",
-        {
-            "request": request,
+    return render_template("screen2_outline.html", request, {
             "generation_id": generation_id,
             "facts_ledger": state["facts_ledger"],
             "humanizer_flags": state["humanizer_flags"],
@@ -240,8 +239,7 @@ async def screen2_outline(request: Request, generation_id: str):
             "stage2_model": state["stage2_model"],
             "design_system": state["brief"]["design_system"],
             "format": state["brief"]["format"]
-        }
-    )
+        })
 
 @app.post("/render-carousel", dependencies=[Depends(check_authenticated)])
 async def handle_outline_approve(
@@ -342,10 +340,7 @@ async def screen3_render(request: Request, generation_id: str):
     # Stringify the slides content so we can parse it in client-side javascript
     slides_json = json.dumps({"slides": state["slides"]})
 
-    return templates.TemplateResponse(
-        "screen3_render.html",
-        {
-            "request": request,
+    return render_template("screen3_render.html", request, {
             "generation_id": generation_id,
             "slides": state["slides"],
             "slides_json": slides_json,
@@ -354,8 +349,7 @@ async def screen3_render(request: Request, generation_id: str):
             "stage2_model": state["stage2_model"],
             "design_system": state["brief"]["design_system"],
             "logo_base64": LOGO_BASE64
-        }
-    )
+        })
 
 # -------------------------------------------------------------
 # API ROUTING FOR INTERACTIVE UPDATES
@@ -559,17 +553,13 @@ async def print_layout(request: Request, generation_id: str, format: str = "1080
     with open(state_file, "r", encoding="utf-8") as f:
         state = json.load(f)
 
-    return templates.TemplateResponse(
-        "print.html",
-        {
-            "request": request,
+    return render_template("print.html", request, {
             "slides": state["slides"],
             "format": format,
             "urls": state["brief"]["urls"],
             "design_system": state["brief"]["design_system"],
             "logo_base64": LOGO_BASE64
-        }
-    )
+        })
 
 @app.get("/generation/{generation_id}/download", dependencies=[Depends(check_authenticated)])
 async def download_pdf(generation_id: str, format: str = "1080x1350"):
@@ -626,10 +616,7 @@ async def get_design_settings(request: Request):
     if os.path.exists(design_path):
         with open(design_path, "r", encoding="utf-8") as f:
             content = f.read()
-    return templates.TemplateResponse(
-        "design_settings.html",
-        {"request": request, "content": content}
-    )
+    return render_template("design_settings.html", request, {"content": content})
 
 @app.post("/design", dependencies=[Depends(check_authenticated)])
 async def post_design_settings(request: Request, content: str = Form(...)):
