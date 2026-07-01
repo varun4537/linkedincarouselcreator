@@ -1,161 +1,158 @@
 {% extends "base.html" %}
 
-{% block title %}Create Carousel Brief — LinkedIn Carousel Creator{% endblock %}
+{% block title %}Create Carousel Brief — CarouselCreator{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <h1>Create Carousel Brief</h1>
-    <p style="color: var(--text-secondary);">Fill out the brief context and upload source excerpts. We will construct a factually faithful slide outline.</p>
+    <p>Provide the topic, target audience, and source documents to generate a high-converting, factually accurate slide outline.</p>
 </div>
 
 {% if not api_key_set %}
-<div class="card-wrapper" style="border: 1.5px solid var(--accent); background: rgba(226, 125, 96, 0.1); margin-bottom: 30px; padding: 20px; border-radius: 8px; display: flex; align-items: start; gap: 16px;">
+<div class="glass-card" style="border-color: var(--accent-coral); background: rgba(226, 125, 96, 0.05); margin-bottom: 32px; padding: 24px; display: flex; align-items: start; gap: 16px;">
     <div style="font-size: 24px; line-height: 1;">⚠️</div>
     <div>
-        <h4 style="color: var(--accent); margin: 0 0 8px 0; font-size: 16px; font-weight: 700;">OpenRouter API Key Missing</h4>
-        <p style="margin: 0; font-size: 13.5px; opacity: 0.9; line-height: 1.5;">
+        <h4 style="color: var(--accent-coral); margin: 0 0 8px 0; font-size: 16px; font-weight: 700;">OpenRouter API Key Missing</h4>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9; line-height: 1.5; color: var(--text-secondary);">
             To generate slide outlines using AI models, you must configure your <code>OPENROUTER_API_KEY</code>. You can set this as an environment variable in your terminal, or create a <code>.env</code> file in the project folder with this content:<br>
-            <code style="display: inline-block; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; margin-top: 8px; font-family: monospace; font-size: 12px; color: var(--text-primary);">OPENROUTER_API_KEY=your_real_openrouter_api_key_here</code>
+            <code style="display: inline-block; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 6px; margin-top: 8px; font-family: monospace; font-size: 12px; color: var(--text-primary); border: 1px solid var(--border-color);">OPENROUTER_API_KEY=your_real_openrouter_api_key_here</code>
         </p>
     </div>
 </div>
 {% endif %}
 
-<ul class="progress-bar">
-    <li class="progress-step active">
-        <div class="progress-step-num">1</div>
-        <span>Brief Context</span>
-    </li>
-    <li class="progress-step">
-        <div class="progress-step-num">2</div>
-        <span>Outline & Facts Review</span>
-    </li>
-    <li class="progress-step">
-        <div class="progress-step-num">3</div>
-        <span>Render & Export</span>
-    </li>
-</ul>
-
-<form id="brief-form" action="/generate-outline" method="POST" class="card-wrapper">
+<form id="brief-form" action="/generate-outline" method="POST" class="glass-card" style="display: flex; flex-direction: column; gap: 32px;">
     <!-- Model Selection Grid -->
-    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--accent); font-size: 16px; text-transform: uppercase;">LLM Model Calibration</h3>
-    <div class="form-row" style="margin-bottom: 30px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
-        <div class="form-group" style="margin-bottom: 0;">
-            <label for="stage1_model">Stage 1 Model (Outline & Facts Ledger)</label>
-            <select name="stage1_model" id="stage1_model">
-                <option value="anthropic/claude-sonnet-4.6" selected>Claude Sonnet 4.6 (anthropic/claude-sonnet-4.6)</option>
-                <option value="google/gemini-3-flash-preview">Gemini 3 Flash Preview (google/gemini-3-flash-preview)</option>
-                <option value="deepseek/deepseek-v4-flash">Deepseek v4 Flash (deepseek/deepseek-v4-flash)</option>
-                <option value="openrouter/owl-alpha">Owl Alpha (openrouter/owl-alpha)</option>
-            </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-            <label for="stage2_model">Stage 2 Model (Per-Slide Humanization)</label>
-            <select name="stage2_model" id="stage2_model">
-                <option value="google/gemini-3-flash-preview" selected>Gemini 3 Flash Preview (google/gemini-3-flash-preview)</option>
-                <option value="deepseek/deepseek-v4-flash">Deepseek v4 Flash (deepseek/deepseek-v4-flash)</option>
-                <option value="openrouter/owl-alpha">Owl Alpha (openrouter/owl-alpha)</option>
-                <option value="anthropic/claude-sonnet-4.6">Claude Sonnet 4.6 (anthropic/claude-sonnet-4.6)</option>
-            </select>
+    <div>
+        <h3 style="margin-top: 0; margin-bottom: 18px; color: var(--accent); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">LLM Model Calibration</h3>
+        <div class="form-row" style="background: rgba(0, 0, 0, 0.2); padding: 24px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="stage1_model">Stage 1 Model (Outline & Facts Ledger)</label>
+                <select name="stage1_model" id="stage1_model">
+                    <option value="anthropic/claude-sonnet-4.6" selected>Claude Sonnet 4.6 (anthropic/claude-sonnet-4.6)</option>
+                    <option value="google/gemini-3-flash-preview">Gemini 3 Flash Preview (google/gemini-3-flash-preview)</option>
+                    <option value="deepseek/deepseek-v4-flash">Deepseek v4 Flash (deepseek/deepseek-v4-flash)</option>
+                    <option value="openrouter/owl-alpha">Owl Alpha (openrouter/owl-alpha)</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="stage2_model">Stage 2 Model (Per-Slide Humanization)</label>
+                <select name="stage2_model" id="stage2_model">
+                    <option value="google/gemini-3-flash-preview" selected>Gemini 3 Flash Preview (google/gemini-3-flash-preview)</option>
+                    <option value="deepseek/deepseek-v4-flash">Deepseek v4 Flash (deepseek/deepseek-v4-flash)</option>
+                    <option value="openrouter/owl-alpha">Owl Alpha (openrouter/owl-alpha)</option>
+                    <option value="anthropic/claude-sonnet-4.6">Claude Sonnet 4.6 (anthropic/claude-sonnet-4.6)</option>
+                </select>
+            </div>
         </div>
     </div>
 
     <!-- Core Content Inputs -->
-    <div class="form-group">
-        <label for="topic">Topic / Working Title *</label>
-        <input type="text" id="topic" name="topic" placeholder="e.g., Three mistakes founders make when auditing SEO conversions" required>
-    </div>
-
-    <div class="form-row">
+    <div>
+        <h3 style="margin-top: 0; margin-bottom: 18px; color: var(--accent); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Core Brief Details</h3>
         <div class="form-group">
-            <label for="audience">Audience *</label>
-            <select name="audience" id="audience" required>
-                <option value="SEO pros">SEO pros</option>
-                <option value="founders" selected>Founders / Operators</option>
-                <option value="content marketers">Content marketers</option>
-                <option value="e-commerce ops">E-commerce ops</option>
-                <option value="general business">General business</option>
-            </select>
+            <label for="topic">Topic / Working Title *</label>
+            <input type="text" id="topic" name="topic" placeholder="e.g., Three mistakes founders make when auditing SEO conversions" required>
         </div>
-        <div class="form-group">
-            <label for="angle">Angle / Core Takeaway *</label>
-            <input type="text" id="angle" name="angle" placeholder="e.g., warn brands not to focus on search volume and optimize for intent instead" required>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="audience">Audience *</label>
+                <select name="audience" id="audience" required>
+                    <option value="SEO pros">SEO pros</option>
+                    <option value="founders" selected>Founders / Operators</option>
+                    <option value="content marketers">Content marketers</option>
+                    <option value="e-commerce ops">E-commerce ops</option>
+                    <option value="general business">General business</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="angle">Angle / Core Takeaway *</label>
+                <input type="text" id="angle" name="angle" placeholder="e.g., warn brands not to focus on search volume and optimize for intent instead" required>
+            </div>
         </div>
     </div>
 
     <!-- Source Excerpts (Dynamically Expandable) -->
-    <div id="source-blocks-container">
-        <h3 style="margin: 30px 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Source Content Excerpts *</h3>
-        <div class="form-group">
-            <label>Source Block 1</label>
-            <textarea name="sources" rows="4" placeholder="Paste source article paragraphs here (not full pages)..." required></textarea>
+    <div>
+        <h3 style="margin-top: 0; margin-bottom: 18px; color: var(--accent); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Source Excerpts *</h3>
+        <div id="source-blocks-container" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 16px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Source Block 1</label>
+                <textarea name="sources" rows="4" placeholder="Paste source article paragraphs or raw transcript copy here (not full pages)..." required></textarea>
+            </div>
         </div>
+        <button type="button" id="add-source-block" class="btn btn-secondary" style="font-size: 13px; padding: 10px 20px;">+ Add Another Source Block</button>
     </div>
-    <button type="button" id="add-source-block" class="btn btn-secondary" style="margin-bottom: 30px; font-size: 13px;">+ Add Another Source Block</button>
 
     <!-- Source Citation URLs (Optional) -->
-    <div id="source-urls-container">
-        <h3 style="margin: 20px 0 10px 0; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Source Citation URLs</h3>
-        <div class="url-input-row">
-            <input type="text" name="urls" placeholder="e.g., https://example.com/seo-mistakes" />
+    <div>
+        <h3 style="margin-top: 0; margin-bottom: 18px; color: var(--accent); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Source Citation URLs</h3>
+        <div id="source-urls-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+            <div class="url-input-row">
+                <input type="text" name="urls" placeholder="e.g., https://example.com/seo-mistakes" />
+            </div>
         </div>
+        <button type="button" id="add-source-url" class="btn btn-secondary" style="font-size: 13px; padding: 10px 20px;">+ Add Citation URL</button>
     </div>
-    <button type="button" id="add-source-url" class="btn btn-secondary" style="margin-bottom: 30px; font-size: 13px;">+ Add Citation URL</button>
 
     <!-- Writer's Draft Notes -->
     <div class="form-group">
         <label for="writer_draft">Writer's Draft or LinkedIn Notes (Optional)</label>
-        <textarea id="writer_draft" name="writer_draft" rows="4" placeholder="If you have already drafted a post or have rough notes, paste them here..."></textarea>
+        <textarea id="writer_draft" name="writer_draft" rows="4" placeholder="If you have already drafted a post or have rough outline notes, paste them here..."></textarea>
     </div>
 
     <!-- Design Choices & Format Grid -->
-    <div class="form-row" style="margin-top: 30px;">
-        <div class="form-group">
-            <label>Design System</label>
-            <div class="radio-group">
-                <div class="radio-card selected" data-group="design">
-                    <input type="radio" name="design_system" value="e2e_premium" checked>
-                    <strong>E2E Brand (Premium Portrait)</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Alternating cream/teal slides, Outfit & Big Shoulders typography, progress indicators, safe zones.</div>
-                </div>
-                <div class="radio-card" data-group="design">
-                    <input type="radio" name="design_system" value="sage_charcoal">
-                    <strong>Sage & Charcoal (Minimal Editorial)</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Charcoal/sage palette, modern typography, floating cards with shadows</div>
-                </div>
-                <div class="radio-card" data-group="design">
-                    <input type="radio" name="design_system" value="teal_tangerine">
-                    <strong>Teal & Tangerine (Bold SaaS)</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Deep teal background, vibrant tangerine highlights, clean product feel</div>
+    <div>
+        <h3 style="margin-top: 0; margin-bottom: 18px; color: var(--accent); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Format & Style Tweak</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Design Template</label>
+                <div class="radio-group" style="flex-direction: column; gap: 12px;">
+                    <div class="radio-card selected" data-group="design" style="text-align: left;">
+                        <input type="radio" name="design_system" value="e2e_premium" checked>
+                        <div class="radio-card-title">E2E Brand (Premium Portrait)</div>
+                        <div class="radio-card-desc">Alternating cream/teal, Outfit & Big Shoulders typography, indicators.</div>
+                    </div>
+                    <div class="radio-card" data-group="design" style="text-align: left;">
+                        <input type="radio" name="design_system" value="sage_charcoal">
+                        <div class="radio-card-title">Sage & Charcoal (Minimal Editorial)</div>
+                        <div class="radio-card-desc">Charcoal/sage palette, modern typography, floating cards.</div>
+                    </div>
+                    <div class="radio-card" data-group="design" style="text-align: left;">
+                        <input type="radio" name="design_system" value="teal_tangerine">
+                        <div class="radio-card-title">Teal & Tangerine (Bold SaaS)</div>
+                        <div class="radio-card-desc">Deep teal background, vibrant tangerine highlights, bold feel.</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label>Output Format</label>
-            <div class="radio-group">
-                <div class="radio-card selected" data-group="format">
-                    <input type="radio" name="format" value="1080x1440" checked>
-                    <strong>Portrait (1080x1440) - 3:4</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Recommended. Premium 3:4 mobile-first portrait aspect ratio.</div>
-                </div>
-                <div class="radio-card" data-group="format">
-                    <input type="radio" name="format" value="1080x1350">
-                    <strong>Portrait (1080x1350) - 4:5</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Standard portrait height on mobile feeds.</div>
-                </div>
-                <div class="radio-card" data-group="format">
-                    <input type="radio" name="format" value="1080x1080">
-                    <strong>Square (1080x1080)</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Classic square layout, tighter canvas spacing</div>
+            
+            <div class="form-group">
+                <label>Output Aspect Ratio</label>
+                <div class="radio-group" style="flex-direction: column; gap: 12px;">
+                    <div class="radio-card selected" data-group="format" style="text-align: left;">
+                        <input type="radio" name="format" value="1080x1440" checked>
+                        <div class="radio-card-title">Portrait (1080x1440) — 3:4</div>
+                        <div class="radio-card-desc">Highly Recommended. Mobile-first portrait aspect ratio.</div>
+                    </div>
+                    <div class="radio-card" data-group="format" style="text-align: left;">
+                        <input type="radio" name="format" value="1080x1350">
+                        <div class="radio-card-title">Portrait (1080x1350) — 4:5</div>
+                        <div class="radio-card-desc">Standard mobile portrait feed aspect ratio.</div>
+                    </div>
+                    <div class="radio-card" data-group="format" style="text-align: left;">
+                        <input type="radio" name="format" value="1080x1080">
+                        <div class="radio-card-title">Square (1080x1080) — 1:1</div>
+                        <div class="radio-card-desc">Classic square layout feeds, tighter spacing.</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer button -->
-    <div class="btn-group" style="justify-content: flex-end;">
-        <button type="submit" class="btn btn-primary">Generate Slide Outline</button>
+    <div class="btn-group" style="justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 32px; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary" style="font-size: 16px; padding: 14px 40px;">Generate Slide Outline</button>
     </div>
 </form>
 {% endblock %}

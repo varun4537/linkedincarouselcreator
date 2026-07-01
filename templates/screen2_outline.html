@@ -1,43 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Review Slide Outline — LinkedIn Carousel Creator{% endblock %}
+{% block title %}Review Slide Outline — CarouselCreator{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <h1>Review & Refine Slide Outline</h1>
-    <p style="color: var(--text-secondary);">Verify that all claims are accurate to the source material. Edit copy directly or request LLM slide-level updates.</p>
+    <p>Verify that all claims are accurate to the source material. Edit slide headlines/body copy directly or request automated LLM tweaks.</p>
 </div>
-
-<ul class="progress-bar">
-    <li class="progress-step completed">
-        <div class="progress-step-num">1</div>
-        <span>Brief Context</span>
-    </li>
-    <li class="progress-step active">
-        <div class="progress-step-num">2</div>
-        <span>Outline & Facts Review</span>
-    </li>
-    <li class="progress-step">
-        <div class="progress-step-num">3</div>
-        <span>Render & Export</span>
-    </li>
-</ul>
 
 <div id="outline-review-container" class="screen2-grid">
     <!-- LEFT PANEL: FACTS LEDGER & HUMANIZER WARNINGS -->
-    <div class="side-panel">
+    <aside class="side-panel">
         <!-- Facts Ledger -->
         <div class="ledger-card">
             <div class="panel-header">
                 <div class="panel-title">Facts Ledger</div>
-                <span class="status-badge" style="font-size: 11px; padding: 2px 8px;">{{ facts_ledger|length }} Claims</span>
+                <span class="status-badge" style="font-size: 11px; padding: 2px 8px; border-radius: 6px;">{{ facts_ledger|length }} Claims</span>
             </div>
             
-            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
                 Every claim here was extracted directly from the sources. If conflicting facts were found, they are highlighted in red below.
             </p>
 
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">
+            <div style="max-height: 380px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column;">
                 {% for claim in facts_ledger %}
                 <div class="ledger-item {% if claim.conflict %}conflict{% endif %}">
                     <div>{{ claim.claim }}</div>
@@ -54,32 +39,32 @@
         <div class="humanizer-card">
             <div class="panel-header">
                 <div class="panel-title">Humanizer Scanner</div>
-                <span class="status-badge" style="font-size: 11px; padding: 2px 8px; background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--warning);">
+                <span class="status-badge" style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background-color: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.25); color: var(--warning);">
                     {{ humanizer_flags|length }} Flags
                 </span>
             </div>
             
-            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
                 Phrases detected by the <strong>the-humanizer-v2.5.md</strong> checklist. We recommend applying the rewrites to avoid generic AI texturing.
             </p>
 
-            <div style="max-height: 350px; overflow-y: auto; padding-right: 8px;">
+            <div style="max-height: 320px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column;">
                 {% if humanizer_flags|length == 0 %}
-                <div style="color: var(--success); font-size: 13px; font-weight: 600; text-align: center; padding: 20px 0;">
+                <div style="color: var(--success); font-size: 13.5px; font-weight: 600; text-align: center; padding: 20px 0;">
                     ✓ Zero AI texture patterns detected. Excellent.
                 </div>
                 {% else %}
                     {% for flag in humanizer_flags %}
                     <div class="humanizer-item">
                         <div class="humanizer-item-title">Flagged: "{{ flag.original_phrase }}"</div>
-                        <div style="color: var(--text-secondary); font-size: 12px;">Reason: {{ flag.reason }}</div>
+                        <div style="color: var(--text-secondary); font-size: 12.5px;">Reason: {{ flag.reason }}</div>
                         <div class="humanizer-suggested">💡 Suggestion: <strong>{{ flag.suggested_rewrite }}</strong></div>
                     </div>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
-    </div>
+    </aside>
 
     <!-- RIGHT PANEL: EDITABLE SLIDE ROWS -->
     <div>
@@ -90,9 +75,9 @@
             <input type="hidden" name="design_system" value="{{ design_system }}">
             <input type="hidden" name="format" value="{{ format }}">
             
-            <div class="panel-header" style="margin-bottom: 0;">
-                <div class="panel-title" style="color: var(--text-primary);">Slide Outline Structure</div>
-                <div style="font-size: 13px; color: var(--text-secondary);">Count: {{ outline|length }} slides (adaptive)</div>
+            <div class="panel-header" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
+                <div class="panel-title" style="color: var(--text-primary); font-size: 15px;">Slide Outline Structure</div>
+                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Count: {{ outline|length }} slides</div>
             </div>
 
             {% for slide in outline %}
@@ -102,7 +87,7 @@
                         <span class="slide-badge">Slide {{ slide.slide_number }}</span>
                         <span class="slide-job-badge">{{ slide.job }}</span>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-regen-slide" data-slide-num="{{ slide.slide_number }}" style="padding: 4px 12px; font-size: 12px;">
+                    <button type="button" class="btn btn-secondary btn-regen-slide" data-slide-num="{{ slide.slide_number }}" style="padding: 8px 16px; font-size: 12px;">
                         ⚡ Regenerate Copy
                     </button>
                 </div>
@@ -111,13 +96,13 @@
                 <input type="hidden" name="slide_{{ slide.slide_number }}_job" value="{{ slide.job }}">
 
                 <!-- Headline field -->
-                <div class="form-group" style="margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 16px;">
                     <label>Headline (max 12 words)</label>
                     <input type="text" name="slide_{{ slide.slide_number }}_headline" value="{{ slide.headline }}" required>
                 </div>
 
                 <!-- Body Copy field -->
-                <div class="form-group" style="margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 16px;">
                     <label>Body copy (1-3 sentences)</label>
                     <textarea name="slide_{{ slide.slide_number }}_body" rows="2" required>{{ slide.body }}</textarea>
                 </div>
@@ -131,9 +116,9 @@
             {% endfor %}
 
             <!-- Form Action buttons -->
-            <div class="btn-group">
+            <div class="btn-group" style="border-top: 1px solid var(--border-color); padding-top: 32px; margin-top: 24px;">
                 <a href="/" class="btn btn-secondary">← Back to Brief</a>
-                <button type="submit" id="approve-outline-btn" class="btn btn-primary">Approve Outline & Render →</button>
+                <button type="submit" id="approve-outline-btn" class="btn btn-primary" style="font-size: 16px; padding: 14px 36px;">Approve Outline & Humanize →</button>
             </div>
         </form>
     </div>
