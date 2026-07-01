@@ -2,6 +2,7 @@ import os
 import re
 import json
 import asyncio
+import httpx
 from datetime import datetime
 from fastapi import FastAPI, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
@@ -9,6 +10,22 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
+
+from fastapi import Depends
+from starlette import status
+
+def check_authenticated(request: Request):
+    # Only bypass authentication for print layout calls when requested locally
+    if request.url.path.endswith("/print"):
+        client_host = request.client.host if request.client else None
+        if client_host in ("127.0.0.1", "localhost", "::1"):
+            return
+    session_id = request.cookies.get("session_id")
+    if session_id != "authenticated":
+        raise HTTPException(
+            status_code=307,
+            headers={"Location": "/login"}
+        )
 
 from openrouter_client import OpenRouterClient
 from pdf_generator import render_html_to_pdf
@@ -19,12 +36,90 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GENERATIONS_DIR = os.path.join(BASE_DIR, "generations")
 os.makedirs(GENERATIONS_DIR, exist_ok=True)
 
+# Load local .env file if it exists (for local development, keeping keys out of git)
+env_path = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_path):
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#"):
+                parts = line.strip().split("=", 1)
+                if len(parts) == 2:
+                    os.environ[parts[0].strip()] = parts[1].strip()
+
+
 # Mount static files and setup templates
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
+# Load E2E logo base64 if it exists
+LOGO_BASE64 = ""
+logo_path = os.path.join(BASE_DIR, "logo_base64.txt")
+if os.path.exists(logo_path):
+    try:
+        with open(logo_path, "r", encoding="utf-8") as f:
+            LOGO_BASE64 = f.read().strip()
+    except Exception as e:
+        print(f"Error loading logo: {e}")
+
+def parse_body_list(body_text: str):
+    if not body_text:
+        return None
+    # Normalize newlines
+    body_text = body_text.replace("\r\n", "\n")
+    lines = [line.strip() for line in body_text.split("\n") if line.strip()]
+    # Check if there are multiple lines and at least one starts with a bullet marker or letter/number lists
+    has_bullets = any(re.match(r"^[-*•\d\.\s]+|^[A-Za-z0-9]\.\s*", line) for line in lines)
+    if len(lines) > 1 and has_bullets:
+        parsed = []
+        for line in lines:
+            # Strip bullet character and leading/trailing spacing
+            clean = re.sub(r"^[-*•\d\.\s]+|^[A-Za-z0-9]\.\s*", "", line).strip()
+            if clean:
+                parsed.append(clean)
+        return parsed
+    return None
+
+templates.env.filters["parse_body_list"] = parse_body_list
+
 # Initialize OpenRouter Client
 client = OpenRouterClient()
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_get(request: Request, error: Optional[str] = None):
+    if request.cookies.get("session_id") == "authenticated":
+        return RedirectResponse(url="/", status_code=303)
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"request": request, "error": error}
+    )
+
+@app.post("/login")
+async def login_post(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    app_user = os.getenv("APP_USERNAME", "admin")
+    app_pass = os.getenv("APP_PASSWORD", "carousel2026")
+    
+    if username == app_user and password == app_pass:
+        response = RedirectResponse(url="/", status_code=303)
+        response.set_cookie(key="session_id", value="authenticated", max_age=86400 * 30, httponly=True)
+        return response
+    
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"request": request, "error": "Invalid username or password"}
+    )
+
+@app.get("/logout")
+async def logout_get():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(key="session_id")
+    return response
+
 
 # Helper: slugify text for filenames and routes
 def slugify(text: str) -> str:
@@ -44,15 +139,16 @@ def check_api_key():
 # WEB INTERFACE ROUTING
 # -------------------------------------------------------------
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def screen1_brief(request: Request):
     api_key_set = bool(os.getenv("OPENROUTER_API_KEY", "").strip())
     return templates.TemplateResponse(
-        "screen1_brief.html",
-        {"request": request, "api_key_set": api_key_set}
+        request=request,
+        name="screen1_brief.html",
+        context={"request": request, "api_key_set": api_key_set}
     )
 
-@app.post("/generate-outline")
+@app.post("/generate-outline", dependencies=[Depends(check_authenticated)])
 async def handle_brief_submit(
     request: Request,
     topic: str = Form(...),
@@ -125,7 +221,7 @@ async def handle_brief_submit(
         status_code=303
     )
 
-@app.get("/generation/{generation_id}/outline", response_class=HTMLResponse)
+@app.get("/generation/{generation_id}/outline", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def screen2_outline(request: Request, generation_id: str):
     gen_path = os.path.join(GENERATIONS_DIR, generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -137,8 +233,9 @@ async def screen2_outline(request: Request, generation_id: str):
         state = json.load(f)
 
     return templates.TemplateResponse(
-        "screen2_outline.html",
-        {
+        request=request,
+        name="screen2_outline.html",
+        context={
             "request": request,
             "generation_id": generation_id,
             "facts_ledger": state["facts_ledger"],
@@ -150,7 +247,7 @@ async def screen2_outline(request: Request, generation_id: str):
         }
     )
 
-@app.post("/render-carousel")
+@app.post("/render-carousel", dependencies=[Depends(check_authenticated)])
 async def handle_outline_approve(
     request: Request,
     generation_id: str = Form(...),
@@ -235,7 +332,7 @@ async def handle_outline_approve(
         status_code=303
     )
 
-@app.get("/generation/{generation_id}/render", response_class=HTMLResponse)
+@app.get("/generation/{generation_id}/render", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def screen3_render(request: Request, generation_id: str):
     gen_path = os.path.join(GENERATIONS_DIR, generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -250,15 +347,18 @@ async def screen3_render(request: Request, generation_id: str):
     slides_json = json.dumps({"slides": state["slides"]})
 
     return templates.TemplateResponse(
-        "screen3_render.html",
-        {
+        request=request,
+        name="screen3_render.html",
+        context={
             "request": request,
             "generation_id": generation_id,
             "slides": state["slides"],
             "slides_json": slides_json,
             "format": state["brief"]["format"],
             "urls": state["brief"]["urls"],
-            "stage2_model": state["stage2_model"]
+            "stage2_model": state["stage2_model"],
+            "design_system": state["brief"]["design_system"],
+            "logo_base64": LOGO_BASE64
         }
     )
 
@@ -272,7 +372,7 @@ class SlideRegenOutlineRequest(BaseModel):
     tweak_instruction: str
     model: str
 
-@app.post("/api/regenerate-slide-outline")
+@app.post("/api/regenerate-slide-outline", dependencies=[Depends(check_authenticated)])
 async def api_regenerate_slide_outline(req: SlideRegenOutlineRequest):
     gen_path = os.path.join(GENERATIONS_DIR, req.generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -350,7 +450,7 @@ class SaveEditsRequest(BaseModel):
     slides: List[Dict[str, Any]]
     format: str
 
-@app.post("/api/save-slide-edits")
+@app.post("/api/save-slide-edits", dependencies=[Depends(check_authenticated)])
 async def api_save_slide_edits(req: SaveEditsRequest):
     gen_path = os.path.join(GENERATIONS_DIR, req.generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -375,7 +475,7 @@ class SlideRegenCopyRequest(BaseModel):
     tweak_instruction: str
     model: str
 
-@app.post("/api/regenerate-slide-copy")
+@app.post("/api/regenerate-slide-copy", dependencies=[Depends(check_authenticated)])
 async def api_regenerate_slide_copy(req: SlideRegenCopyRequest):
     gen_path = os.path.join(GENERATIONS_DIR, req.generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -453,7 +553,7 @@ Respond with a JSON object containing:
 # PRINT LAYOUT & PDF EXPORT
 # -------------------------------------------------------------
 
-@app.get("/generation/{generation_id}/print", response_class=HTMLResponse)
+@app.get("/generation/{generation_id}/print", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def print_layout(request: Request, generation_id: str, format: str = "1080x1350"):
     gen_path = os.path.join(GENERATIONS_DIR, generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -465,16 +565,19 @@ async def print_layout(request: Request, generation_id: str, format: str = "1080
         state = json.load(f)
 
     return templates.TemplateResponse(
-        "print.html",
-        {
+        request=request,
+        name="print.html",
+        context={
             "request": request,
             "slides": state["slides"],
             "format": format,
-            "urls": state["brief"]["urls"]
+            "urls": state["brief"]["urls"],
+            "design_system": state["brief"]["design_system"],
+            "logo_base64": LOGO_BASE64
         }
     )
 
-@app.get("/generation/{generation_id}/download")
+@app.get("/generation/{generation_id}/download", dependencies=[Depends(check_authenticated)])
 async def download_pdf(generation_id: str, format: str = "1080x1350"):
     gen_path = os.path.join(GENERATIONS_DIR, generation_id)
     state_file = os.path.join(gen_path, "state.json")
@@ -486,7 +589,12 @@ async def download_pdf(generation_id: str, format: str = "1080x1350"):
         state = json.load(f)
 
     # Determine canvas aspect ratios
-    width_px, height_px = (1080, 1350) if format == "1080x1350" else (1080, 1080)
+    if format == "1080x1440":
+        width_px, height_px = (1080, 1440)
+    elif format == "1080x1350":
+        width_px, height_px = (1080, 1350)
+    else:
+        width_px, height_px = (1080, 1080)
 
     # Local print URL
     print_url = f"http://localhost:8000/generation/{generation_id}/print?format={format}"
@@ -517,7 +625,7 @@ async def download_pdf(generation_id: str, format: str = "1080x1350"):
 # DESIGN SYSTEM SETTINGS EDITOR
 # -------------------------------------------------------------
 
-@app.get("/design", response_class=HTMLResponse)
+@app.get("/design", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def get_design_settings(request: Request):
     design_path = os.path.join(BASE_DIR, "design.md")
     content = ""
@@ -525,11 +633,12 @@ async def get_design_settings(request: Request):
         with open(design_path, "r", encoding="utf-8") as f:
             content = f.read()
     return templates.TemplateResponse(
-        "design_settings.html",
-        {"request": request, "content": content}
+        request=request,
+        name="design_settings.html",
+        context={"request": request, "content": content}
     )
 
-@app.post("/design")
+@app.post("/design", dependencies=[Depends(check_authenticated)])
 async def post_design_settings(request: Request, content: str = Form(...)):
     design_path = os.path.join(BASE_DIR, "design.md")
     with open(design_path, "w", encoding="utf-8") as f:
@@ -548,4 +657,5 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

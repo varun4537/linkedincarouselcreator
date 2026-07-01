@@ -8,6 +8,19 @@
     <p style="color: var(--text-secondary);">Fill out the brief context and upload source excerpts. We will construct a factually faithful slide outline.</p>
 </div>
 
+{% if not api_key_set %}
+<div class="card-wrapper" style="border: 1.5px solid var(--accent); background: rgba(226, 125, 96, 0.1); margin-bottom: 30px; padding: 20px; border-radius: 8px; display: flex; align-items: start; gap: 16px;">
+    <div style="font-size: 24px; line-height: 1;">⚠️</div>
+    <div>
+        <h4 style="color: var(--accent); margin: 0 0 8px 0; font-size: 16px; font-weight: 700;">OpenRouter API Key Missing</h4>
+        <p style="margin: 0; font-size: 13.5px; opacity: 0.9; line-height: 1.5;">
+            To generate slide outlines using AI models, you must configure your <code>OPENROUTER_API_KEY</code>. You can set this as an environment variable in your terminal, or create a <code>.env</code> file in the project folder with this content:<br>
+            <code style="display: inline-block; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; margin-top: 8px; font-family: monospace; font-size: 12px; color: var(--text-primary);">OPENROUTER_API_KEY=your_real_openrouter_api_key_here</code>
+        </p>
+    </div>
+</div>
+{% endif %}
+
 <ul class="progress-bar">
     <li class="progress-step active">
         <div class="progress-step-num">1</div>
@@ -101,14 +114,19 @@
             <label>Design System</label>
             <div class="radio-group">
                 <div class="radio-card selected" data-group="design">
-                    <input type="radio" name="design_system" value="warm_editorial" checked>
-                    <strong>Warm Editorial</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Rust/sand/ink palette, floating cards, spotlights</div>
+                    <input type="radio" name="design_system" value="e2e_premium" checked>
+                    <strong>E2E Brand (Premium Portrait)</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Alternating cream/teal slides, Outfit & Big Shoulders typography, progress indicators, safe zones.</div>
                 </div>
-                <div class="radio-card" data-group="design" style="opacity: 0.5; cursor: not-allowed;">
-                    <input type="radio" name="design_system" value="system_2" disabled>
-                    <strong>System 2 (TBD)</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Under development</div>
+                <div class="radio-card" data-group="design">
+                    <input type="radio" name="design_system" value="sage_charcoal">
+                    <strong>Sage & Charcoal (Minimal Editorial)</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Charcoal/sage palette, modern typography, floating cards with shadows</div>
+                </div>
+                <div class="radio-card" data-group="design">
+                    <input type="radio" name="design_system" value="teal_tangerine">
+                    <strong>Teal & Tangerine (Bold SaaS)</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Deep teal background, vibrant tangerine highlights, clean product feel</div>
                 </div>
             </div>
         </div>
@@ -117,9 +135,14 @@
             <label>Output Format</label>
             <div class="radio-group">
                 <div class="radio-card selected" data-group="format">
-                    <input type="radio" name="format" value="1080x1350" checked>
-                    <strong>Portrait (1080x1350)</strong>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Default. More vertical height on mobile feeds</div>
+                    <input type="radio" name="format" value="1080x1440" checked>
+                    <strong>Portrait (1080x1440) - 3:4</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Recommended. Premium 3:4 mobile-first portrait aspect ratio.</div>
+                </div>
+                <div class="radio-card" data-group="format">
+                    <input type="radio" name="format" value="1080x1350">
+                    <strong>Portrait (1080x1350) - 4:5</strong>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Standard portrait height on mobile feeds.</div>
                 </div>
                 <div class="radio-card" data-group="format">
                     <input type="radio" name="format" value="1080x1080">

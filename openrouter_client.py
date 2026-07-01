@@ -97,12 +97,12 @@ You must respond with a JSON object containing exactly three fields:
    - "source": string (attribution, e.g. "Source 1", "Source 2")
    - "conflict": boolean
    - "conflict_details": string or null
-2. "outline": List of proposed slides (minimum 6, maximum 12) with the following keys:
+2. "outline": List of proposed slides (minimum 6, maximum 10) with the following keys:
    - "slide_number": integer
    - "job": string (must be one of: "Cover", "Definition", "Mechanics", "Nuance", "Stat", "Who benefits", "Action", "Closing")
    - "headline": string (max 12 words, bold, social-native)
-   - "body": string (1-3 sentences max, clean, short)
-   - "stat": string or null (specific numbers, metrics or quotes if applicable)
+   - "body": string (1-3 sentences max, clean, short. Aim for crisp rhythmic sentences)
+   - "stat": string or null (specific numbers, metrics, percentage e.g. "91%", "50%" or short quotes. Essential for Stat slides)
 3. "humanizer_flags": List of any phrases generated in your own initial thoughts/outline that violate the Humanizer rules, with keys:
    - "original_phrase": string
    - "reason": string

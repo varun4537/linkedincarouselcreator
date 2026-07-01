@@ -71,6 +71,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 <label for="format-selector" style="margin-bottom: 0; font-size: 13px; font-weight: 700; color: var(--text-secondary);">Format:</label>
                 <select id="format-selector" style="width: 160px; padding: 6px 12px; font-size: 13px;">
+                    <option value="1080x1440" {% if format == "1080x1440" %}selected{% endif %}>Portrait (1080x1440)</option>
                     <option value="1080x1350" {% if format == "1080x1350" %}selected{% endif %}>Portrait (1080x1350)</option>
                     <option value="1080x1080" {% if format == "1080x1080" %}selected{% endif %}>Square (1080x1080)</option>
                 </select>
@@ -79,75 +80,213 @@
 
         <!-- Render Target Frame (Scaled down for screen layout) -->
         <div class="scale-wrapper">
-            <div id="carousel-preview-canvas" class="carousel-canvas {% if format == '1080x1350' %}canvas-portrait{% else %}canvas-square{% endif %}">
+            <div id="carousel-preview-canvas" class="carousel-canvas ds-{{ design_system }} {% if format == '1080x1440' %}canvas-portrait-1440{% elif format == '1080x1350' %}canvas-portrait{% else %}canvas-square{% endif %}">
                 
                 <!-- Loop over all slides dynamically to inject initial markup -->
                 {% for slide in slides %}
                 <div class="preview-slide-wrapper" data-index="{{ loop.index0 }}">
-                    <div class="slide-card job-{{ slide.job|lower }}">
-                        
-                        <!-- Design elements -->
-                        <div class="decor-dot-grid decor-top-right"></div>
-                        <div class="decor-line line-diagonal"></div>
-                        
-                        <!-- Safe Zone Wrapper -->
-                        <div class="safe-zone">
-                            <!-- Header UI -->
-                            <div class="ui-header">
-                                <div class="ui-label">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
-                                        <circle cx="12" cy="12" r="10" stroke="#7E8A8C" stroke-width="2" />
-                                        <circle cx="12" cy="12" r="4" fill="#E27D60" />
-                                    </svg>
-                                    E2E Ecommerce
-                                </div>
-                                <div class="ui-label">LinkedIn Playbook</div>
-                            </div>
-                            
-                            <!-- Middle content block -->
-                            <div class="content-area">
-                                {% if slide.job == "Cover" %}
-                                    <div class="headline">{{ slide.headline }}</div>
-                                    <div class="body-text">{{ slide.body }}</div>
-                                    <div>
-                                        <span class="cta-swipe">
-                                            Swipe
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                                <polyline points="12 5 19 12 12 19"></polyline>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                {% elif slide.job == "Closing" %}
-                                    <div class="closing-brand">E2E ECOMMERCE</div>
-                                    <div class="headline" style="font-size: 58px;">{{ slide.headline }}</div>
-                                    <div class="body-text" style="max-width: none;">{{ slide.body }}</div>
-                                    {% if urls|length > 0 %}
-                                    <div class="closing-sources">
-                                        <strong>Sources:</strong> {{ urls|join(", ") }}
-                                    </div>
+                    
+                    {% if design_system == 'e2e_premium' %}
+                        <!-- E2E Brand (Premium Portrait) -->
+                        <div class="slide-card job-{{ slide.job|lower }} {% if loop.index % 2 == 1 %}slide-light{% else %}slide-teal{% endif %}">
+                            <div class="inner-slide">
+                                <!-- TOPBAR -->
+                                <div class="topbar">
+                                    {% if loop.index == 1 or loop.index % 2 == 1 %}
+                                        <div class="brandmark"><img src="{{ logo_base64 }}" alt="E2E logo"></div>
+                                    {% else %}
+                                        <div class="brandpill"><img src="{{ logo_base64 }}" alt=""><span>End To End Ecommerce</span></div>
                                     {% endif %}
-                                {% elif slide.job == "Stat" %}
-                                    <div class="stat-container">
-                                        <div class="stat-value">{{ slide.stat or "10x" }}</div>
-                                        <div class="headline" style="font-size: 48px;">{{ slide.headline }}</div>
+                                    <div class="pagenum">{{ "%02d" | format(loop.index) }}</div>
+                                </div>
+
+                                <!-- CONTENT -->
+                                <div class="content-slide">
+                                    {% if slide.job == "Cover" %}
+                                        <div class="kicker">Query Fan-Out</div>
+                                        <h1 class="headline-text headline">{{ slide.headline|safe }}</h1>
+                                        <div class="rule"></div>
+                                        <div class="body-text">{{ slide.body }}</div>
+                                    {% elif slide.job == "Closing" %}
+                                        <h1 class="headline-text headline" style="font-size: 120px;">{{ slide.headline|safe }}</h1>
+                                        <div class="rule"></div>
+                                        <div class="body-text">{{ slide.body }}</div>
+                                        <div class="cta">Want a fan-out audit? DM "FANOUT"</div>
+                                        <div class="closer" style="margin-top: 28px;">Save this before your next content sprint.</div>
+                                        <div class="icons">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.7; vertical-align: middle; margin-right: 8px;"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.7; vertical-align: middle; margin-right: 8px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.7; vertical-align: middle; margin-right: 8px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.7; vertical-align: middle;"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                                        </div>
+                                    {% elif slide.job == "Stat" %}
+                                        <div class="kicker">{{ "%02d" | format(loop.index - 1) }} · Data point</div>
+                                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                                            <div class="headline-text stat-value" style="font-size: 110px; line-height: 0.9; font-weight: 900; color: var(--fg); font-family: 'Big Shoulders Display', sans-serif;">{{ slide.stat or "50%" }}</div>
+                                            <h1 class="headline-text headline" style="font-size: 74px; line-height: 1.1; margin-top: 8px;">{{ slide.headline|safe }}</h1>
+                                        </div>
+                                        <div class="rule"></div>
+                                        <div class="body-text">{{ slide.body }}</div>
+                                        {% if urls|length > 0 %}
+                                            <div class="footnote">Sources: 
+                                                {% for u in urls %}
+                                                    <a href="{{ u }}" target="_blank" style="color:var(--accent); text-decoration:underline;">
+                                                        {% if 'semrush' in u|lower %}Semrush
+                                                        {% elif 'searchengineland' in u|lower %}Search Engine Land
+                                                        {% elif 'ahrefs' in u|lower %}Ahrefs
+                                                        {% else %}Source {{ loop.index }}
+                                                        {% endif %}
+                                                    </a>{% if not loop.last %} · {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="kicker">{{ "%02d" | format(loop.index - 1) }} · {% if slide.job == "Definition" %}The Concept{% elif slide.job == "Mechanics" %}The Shift{% elif slide.job == "Nuance" %}The Catch{% elif slide.job == "Action" %}How to Win{% else %}Key Takeaway{% endif %}</div>
+                                        <h1 class="headline-text headline">{{ slide.headline|safe }}</h1>
+                                        <div class="rule"></div>
+                                        
+                                        {% set points = slide.body|parse_body_list %}
+                                        {% if points %}
+                                            <div class="list">
+                                                {% for item in points %}
+                                                    <div class="row">
+                                                        <div class="mark">{{ ['A','B','C','D','E','F','G'][loop.index0] if loop.index0 < 7 else '' }}</div>
+                                                        <div>{{ item }}</div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="body-text">{{ slide.body }}</div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+
+                                <!-- PROGRESS BAR -->
+                                <div class="progress">
+                                    <div class="dot" style="left: {{ (loop.index0 / (slides|length - 1) * 100)|round }}%;"></div>
+                                </div>
+
+                                <!-- FOOTER -->
+                                {% if slide.job != "Closing" %}
+                                <div class="footer">
+                                    <div class="brandpill"><img src="{{ logo_base64 }}" alt=""><span>End To End Ecommerce</span></div>
+                                    <div class="arrowbtn">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            <polyline points="12 5 19 12 12 19"></polyline>
+                                        </svg>
                                     </div>
-                                    <div class="body-text">{{ slide.body }}</div>
-                                {% else %}
-                                    <div class="giant-number">{{ "%02d." | format(loop.index) }}</div>
-                                    <div class="headline">{{ slide.headline }}</div>
-                                    <div class="body-text">{{ slide.body }}</div>
+                                </div>
                                 {% endif %}
                             </div>
+                        </div>
+                    {% else %}
+                        <!-- Sage / Teal Layouts -->
+                        <div class="slide-card job-{{ slide.job|lower }} {% if loop.index0 % 2 == 1 %}card-accent{% endif %}">
+                            <!-- Design elements specific to system choice -->
+                            {% if design_system == 'sage_charcoal' %}
+                            <div class="decor-dot-grid decor-top-right"></div>
+                            <div class="decor-line line-diagonal"></div>
+                            {% endif %}
                             
-                            <!-- Footer UI -->
-                            <div class="ui-footer">
-                                <div class="ui-label" style="font-size: 14px; text-transform: lowercase;">e2eecommerce.com</div>
-                                <div class="ui-label">{{ loop.index }} / {{ slides|length }}</div>
+                            <!-- Safe Zone Wrapper -->
+                            <div class="safe-zone">
+                                <!-- Header UI -->
+                                <div class="ui-header">
+                                    {% if design_system == 'teal_tangerine' %}
+                                    <div class="ui-label" style="text-transform: lowercase; font-weight: 500;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: -2px;">
+                                            <circle cx="12" cy="12" r="10" fill="#FF532F" />
+                                        </svg>
+                                        culture intelligence
+                                    </div>
+                                    <div class="ui-label" style="font-size: 14px; opacity: 0.7;">Value Alignment</div>
+                                    {% else %}
+                                    <div class="ui-label">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
+                                            <circle cx="12" cy="12" r="10" stroke="#7E8A8C" stroke-width="2" />
+                                            <circle cx="12" cy="12" r="4" fill="#CBD7D5" />
+                                        </svg>
+                                        E2E Ecommerce
+                                    </div>
+                                    <div class="ui-label">LinkedIn Playbook</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Middle content block -->
+                                <div class="content-area">
+                                    {% if slide.job == "Cover" %}
+                                        <div class="headline">{{ slide.headline|safe }}</div>
+                                        <div class="body-text">{{ slide.body }}</div>
+                                        <div class="cta-container">
+                                            {% if design_system == 'teal_tangerine' %}
+                                            <span class="cta-pill">Book a demo</span>
+                                            <span class="cta-pill cta-secondary">Get accurate insights</span>
+                                            {% else %}
+                                            <span class="cta-pill cta-primary">LEARN MORE</span>
+                                            <span class="cta-pill">GET TO KNOW US <span style="margin-left: 4px;">→</span></span>
+                                            {% endif %}
+                                        </div>
+                                    {% elif slide.job == "Closing" %}
+                                        <div class="closing-brand">
+                                            {% if design_system == 'teal_tangerine' %}
+                                            culture intelligence
+                                            {% else %}
+                                            E2E ECOMMERCE
+                                            {% endif %}
+                                        </div>
+                                        <div class="headline" style="font-size: 54px;">{{ slide.headline|safe }}</div>
+                                        <div class="body-text" style="max-width: none;">{{ slide.body }}</div>
+                                        <div class="cta-container" style="justify-content: center; margin-top: 10px;">
+                                            {% if design_system == 'teal_tangerine' %}
+                                            <span class="cta-pill">Book a demo</span>
+                                            {% else %}
+                                            <span class="cta-pill cta-primary">VISIT OUR SITE</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if urls|length > 0 %}
+                                        <div class="closing-sources">
+                                            <strong>Sources:</strong> {{ urls|join(", ") }}
+                                        </div>
+                                        {% endif %}
+                                    {% elif slide.job == "Stat" %}
+                                        <div class="stat-container">
+                                            <div class="stat-value">
+                                                {{ slide.stat or "50%" }}
+                                                {% if design_system == 'teal_tangerine' %}<span class="orange-dot-accent"></span>{% endif %}
+                                            </div>
+                                            <div class="headline" style="font-size: 44px; line-height: 1.2;">{{ slide.headline|safe }}</div>
+                                        </div>
+                                        <div class="body-text">{{ slide.body }}</div>
+                                    {% else %}
+                                        <div class="giant-number">
+                                            {{ "%02d." | format(loop.index) }}
+                                        </div>
+                                        <div class="headline">{{ slide.headline|safe }}</div>
+                                        <div class="body-text">{{ slide.body }}</div>
+                                        
+                                        {% if design_system == 'teal_tangerine' and loop.index % 3 == 0 %}
+                                        <!-- Add decorative line graph to simulate product screenshot metric lines on some cards -->
+                                        <div class="decor-minimal-graph"></div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Footer UI -->
+                                <div class="ui-footer">
+                                    <div class="ui-label" style="font-size: 14px; text-transform: lowercase;">
+                                        {% if design_system == 'teal_tangerine' %}
+                                        cultureintelligence.io
+                                        {% else %}
+                                        e2eecommerce.com
+                                        {% endif %}
+                                    </div>
+                                    <div class="ui-label">{{ loop.index }} / {{ slides|length }}</div>
+                                </div>
                             </div>
                         </div>
-
-                    </div>
+                    {% endif %}
+                    
                 </div>
                 {% endfor %}
 

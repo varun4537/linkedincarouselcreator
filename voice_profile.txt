@@ -1,0 +1,7 @@
+### E2E ECOMMERCE HOUSE VOICE PROFILE
+- **Tone:** Calm confidence, operational, and metrics-driven. Avoid marketing hype, corporate over-politeness, "inspirational" cheerleading, or fake humility.
+- **Rhythm:** Highly varied sentence lengths. Use brief, sharp observations (e.g. "We lost half our Organic CTR in 3 weeks.") mixed with structured details. Keep reading complexity at a 7th–9th grade level so it digests easily on mobile.
+- **Opening Style:** Lead with a concrete, stakes-rich data point, a specific setback, or a contrarian observation. Never throat-clear with "In today's fast-paced environment..." or "SEO is changing..."
+- **Core Strategy:** Focus heavily on mechanics—show exactly how something works, make structural trade-offs plain, and specify exact numbers rather than vague claims like "scaled rapidly" or "driving massive impact."
+- **Closing Style:** End with a strong actionable challenge, a clear operating principle, or a thought-provoking tension. Zero engagement bait like "Thoughts?" or "Do you agree? Comments below!"
+- **Forbidden Vocabulary:** elevate, realm, leverage (as verb, use "use"), foster, cultivate, tapestry, multifaceted, journey, streamline, breakthrough, seamless, robust, synergy, thought leader.

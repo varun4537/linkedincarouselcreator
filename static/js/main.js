@@ -219,11 +219,12 @@ function initRenderScreen() {
     if (formatSelect && previewContainer) {
         formatSelect.addEventListener("change", (e) => {
             const format = e.target.value;
-            if (format === "1080x1350") {
-                previewContainer.classList.remove("canvas-square");
+            previewContainer.classList.remove("canvas-square", "canvas-portrait", "canvas-portrait-1440");
+            if (format === "1080x1440") {
+                previewContainer.classList.add("canvas-portrait-1440");
+            } else if (format === "1080x1350") {
                 previewContainer.classList.add("canvas-portrait");
             } else {
-                previewContainer.classList.remove("canvas-portrait");
                 previewContainer.classList.add("canvas-square");
             }
             updateCarouselPosition();
@@ -444,12 +445,9 @@ function initRenderScreen() {
 }
 
 function updateCarouselPosition() {
-    const track = document.getElementById("carousel-track");
     const indicatorText = document.getElementById("slide-indicator-text");
     const prevBtn = document.getElementById("prev-slide");
     const nextBtn = document.getElementById("next-slide");
-
-    if (!track) return;
 
     // Show/hide correct slide wrapper using display or sliding transform
     const slides = document.querySelectorAll(".preview-slide-wrapper");
