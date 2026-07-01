@@ -89,9 +89,8 @@ async def login_get(request: Request, error: Optional[str] = None):
     if request.cookies.get("session_id") == "authenticated":
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(
-        request=request,
-        name="login.html",
-        context={"request": request, "error": error}
+        "login.html",
+        {"request": request, "error": error}
     )
 
 @app.post("/login")
@@ -109,9 +108,8 @@ async def login_post(
         return response
     
     return templates.TemplateResponse(
-        request=request,
-        name="login.html",
-        context={"request": request, "error": "Invalid username or password"}
+        "login.html",
+        {"request": request, "error": "Invalid username or password"}
     )
 
 @app.get("/logout")
@@ -143,9 +141,8 @@ def check_api_key():
 async def screen1_brief(request: Request):
     api_key_set = bool(os.getenv("OPENROUTER_API_KEY", "").strip())
     return templates.TemplateResponse(
-        request=request,
-        name="screen1_brief.html",
-        context={"request": request, "api_key_set": api_key_set}
+        "screen1_brief.html",
+        {"request": request, "api_key_set": api_key_set}
     )
 
 @app.post("/generate-outline", dependencies=[Depends(check_authenticated)])
@@ -233,9 +230,8 @@ async def screen2_outline(request: Request, generation_id: str):
         state = json.load(f)
 
     return templates.TemplateResponse(
-        request=request,
-        name="screen2_outline.html",
-        context={
+        "screen2_outline.html",
+        {
             "request": request,
             "generation_id": generation_id,
             "facts_ledger": state["facts_ledger"],
@@ -347,9 +343,8 @@ async def screen3_render(request: Request, generation_id: str):
     slides_json = json.dumps({"slides": state["slides"]})
 
     return templates.TemplateResponse(
-        request=request,
-        name="screen3_render.html",
-        context={
+        "screen3_render.html",
+        {
             "request": request,
             "generation_id": generation_id,
             "slides": state["slides"],
@@ -565,9 +560,8 @@ async def print_layout(request: Request, generation_id: str, format: str = "1080
         state = json.load(f)
 
     return templates.TemplateResponse(
-        request=request,
-        name="print.html",
-        context={
+        "print.html",
+        {
             "request": request,
             "slides": state["slides"],
             "format": format,
@@ -633,9 +627,8 @@ async def get_design_settings(request: Request):
         with open(design_path, "r", encoding="utf-8") as f:
             content = f.read()
     return templates.TemplateResponse(
-        request=request,
-        name="design_settings.html",
-        context={"request": request, "content": content}
+        "design_settings.html",
+        {"request": request, "content": content}
     )
 
 @app.post("/design", dependencies=[Depends(check_authenticated)])
