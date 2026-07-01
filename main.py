@@ -581,7 +581,8 @@ async def download_pdf(generation_id: str, format: str = "1080x1350"):
         width_px, height_px = (1080, 1080)
 
     # Local print URL
-    print_url = f"http://localhost:8000/generation/{generation_id}/print?format={format}"
+    port = os.getenv("PORT", "8000")
+    print_url = f"http://localhost:{port}/generation/{generation_id}/print?format={format}"
     pdf_filename = f"{slugify(state['brief']['topic'])}-{datetime.now().strftime('%Y-%m-%d')}.pdf"
     output_pdf_path = os.path.join(gen_path, pdf_filename)
 
