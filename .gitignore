@@ -19,6 +19,6 @@ generations/
 .env
 
 # Binary/Generated files to exclude from Git (especially for Hugging Face)
-*.pdf
-*.html
+/*.pdf
+/*.html
 logo_base64.txt

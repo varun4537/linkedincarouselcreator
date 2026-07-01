@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — LinkedIn Carousel Creator</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        body {
+            background-color: #152228;
+            color: #f4f7f6;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .login-card {
+            background-color: #f4f7f6;
+            color: #1a3038;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+            padding: 40px;
+            box-sizing: border-box;
+            border: 1px solid rgba(56, 156, 167, 0.15);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .login-logo rect {
+            fill: #1f6e7c;
+        }
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            color: #1f6e7c;
+            letter-spacing: -0.02em;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: #52676f;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a3038;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1.5px solid #d4dede;
+            background-color: #ffffff;
+            color: #1a3038;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #389ca7;
+            box-shadow: 0 0 0 3px rgba(56, 156, 167, 0.15);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #f4f7f6;
+            background-color: #1f6e7c;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 10px;
+        }
+        .login-btn:hover {
+            background-color: #389ca7;
+        }
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+        .error-message {
+            background-color: rgba(226, 125, 96, 0.1);
+            color: #e27d60;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            border: 1px solid rgba(226, 125, 96, 0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="20" height="20" rx="4" fill="#1f6e7c" />
+                    <circle cx="8" cy="8" r="2" fill="#f4f7f6" />
+                    <rect x="6" y="12" width="12" height="6" rx="1" fill="#f4f7f6" />
+                </svg>
+            </div>
+            <h1 class="login-title">CarouselCreator</h1>
+            <p class="login-subtitle">Internal Team Authentication</p>
+        </div>
+
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="login-btn">Sign In</button>
+        </form>
+    </div>
+</body>
+</html>
