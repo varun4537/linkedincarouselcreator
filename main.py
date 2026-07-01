@@ -1,4 +1,5 @@
 import os
+import uuid
 import re
 import json
 import asyncio
@@ -90,6 +91,227 @@ def render_template(template_name: str, request: Request, context: dict):
         return templates.TemplateResponse(request=request, name=template_name, context=context)
     else:
         return templates.TemplateResponse(name=template_name, context=context)
+
+from database import SessionLocal, Carousel
+
+def db_get_carousel_state(generation_id: str) -> dict:
+    db = SessionLocal()
+    try:
+        carousel = db.query(Carousel).filter(Carousel.id == generation_id).first()
+        if not carousel:
+            return None
+        return json.loads(carousel.state_json)
+    finally:
+        db.close()
+
+def db_save_carousel_state(generation_id: str, state: dict):
+    db = SessionLocal()
+    try:
+        carousel = db.query(Carousel).filter(Carousel.id == generation_id).first()
+        if not carousel:
+            carousel = Carousel(
+                id=generation_id,
+                user_id="admin",
+                topic=state.get("brief", {}).get("topic", "Untitled Topic"),
+                aspect_ratio=state.get("brief", {}).get("format", "1080x1440"),
+                design_system=state.get("brief", {}).get("design_system", "e2e_premium"),
+                state_json=json.dumps(state)
+            )
+            db.add(carousel)
+        else:
+            carousel.topic = state.get("brief", {}).get("topic", carousel.topic)
+            carousel.aspect_ratio = state.get("brief", {}).get("format", carousel.aspect_ratio)
+            carousel.design_system = state.get("brief", {}).get("design_system", carousel.design_system)
+            carousel.state_json = json.dumps(state)
+        db.commit()
+    finally:
+        db.close()
+
+from database import BrandKit, WriterProfile
+from typing import Optional
+
+# Pydantic Schemas for API Requests
+class BrandKitSchema(BaseModel):
+    name: str
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = "#1f6e7c"
+    secondary_color: Optional[str] = "#f4f7f6"
+    accent_color: Optional[str] = "#e27d60"
+    font_header: Optional[str] = "Big Shoulders Display"
+    font_body: Optional[str] = "Plus Jakarta Sans"
+    handle_cta: Optional[str] = ""
+    is_default: Optional[bool] = False
+
+class WriterProfileSchema(BaseModel):
+    name: str
+    tone_description: str
+    sample_text: Optional[str] = None
+    is_default: Optional[bool] = False
+
+# CRUD for Brand Kits
+@app.get("/api/brand-kits", dependencies=[Depends(check_authenticated)])
+def get_brand_kits():
+    db = SessionLocal()
+    try:
+        kits = db.query(BrandKit).filter(BrandKit.user_id == "admin").all()
+        return [{
+            "id": k.id,
+            "name": k.name,
+            "logo_url": k.logo_url,
+            "primary_color": k.primary_color,
+            "secondary_color": k.secondary_color,
+            "accent_color": k.accent_color,
+            "font_header": k.font_header,
+            "font_body": k.font_body,
+            "handle_cta": k.handle_cta,
+            "is_default": k.is_default
+        } for k in kits]
+    finally:
+        db.close()
+
+@app.post("/api/brand-kits", dependencies=[Depends(check_authenticated)])
+def create_brand_kit(kit: BrandKitSchema):
+    db = SessionLocal()
+    try:
+        kit_id = str(uuid.uuid4())
+        
+        # If this is marked as default, unset other defaults
+        if kit.is_default:
+            db.query(BrandKit).filter(BrandKit.user_id == "admin").update({"is_default": False})
+            
+        new_kit = BrandKit(
+            id=kit_id,
+            user_id="admin",
+            name=kit.name,
+            logo_url=kit.logo_url,
+            primary_color=kit.primary_color,
+            secondary_color=kit.secondary_color,
+            accent_color=kit.accent_color,
+            font_header=kit.font_header,
+            font_body=kit.font_body,
+            handle_cta=kit.handle_cta,
+            is_default=kit.is_default
+        )
+        db.add(new_kit)
+        db.commit()
+        return {"status": "success", "id": kit_id}
+    finally:
+        db.close()
+
+@app.put("/api/brand-kits/{kit_id}", dependencies=[Depends(check_authenticated)])
+def update_brand_kit(kit_id: str, kit: BrandKitSchema):
+    db = SessionLocal()
+    try:
+        db_kit = db.query(BrandKit).filter(BrandKit.id == kit_id, BrandKit.user_id == "admin").first()
+        if not db_kit:
+            raise HTTPException(status_code=404, detail="Brand kit not found")
+            
+        # If this is marked as default, unset other defaults
+        if kit.is_default:
+            db.query(BrandKit).filter(BrandKit.user_id == "admin").update({"is_default": False})
+            
+        db_kit.name = kit.name
+        db_kit.logo_url = kit.logo_url
+        db_kit.primary_color = kit.primary_color
+        db_kit.secondary_color = kit.secondary_color
+        db_kit.accent_color = kit.accent_color
+        db_kit.font_header = kit.font_header
+        db_kit.font_body = kit.font_body
+        db_kit.handle_cta = kit.handle_cta
+        db_kit.is_default = kit.is_default
+        db.commit()
+        return {"status": "success"}
+    finally:
+        db.close()
+
+@app.delete("/api/brand-kits/{kit_id}", dependencies=[Depends(check_authenticated)])
+def delete_brand_kit(kit_id: str):
+    db = SessionLocal()
+    try:
+        db_kit = db.query(BrandKit).filter(BrandKit.id == kit_id, BrandKit.user_id == "admin").first()
+        if not db_kit:
+            raise HTTPException(status_code=404, detail="Brand kit not found")
+        db.delete(db_kit)
+        db.commit()
+        return {"status": "success"}
+    finally:
+        db.close()
+
+# CRUD for Writer Profiles
+@app.get("/api/writer-profiles", dependencies=[Depends(check_authenticated)])
+def get_writer_profiles():
+    db = SessionLocal()
+    try:
+        profiles = db.query(WriterProfile).filter(WriterProfile.user_id == "admin").all()
+        return [{
+            "id": p.id,
+            "name": p.name,
+            "tone_description": p.tone_description,
+            "sample_text": p.sample_text,
+            "is_default": p.is_default
+        } for p in profiles]
+    finally:
+        db.close()
+
+@app.post("/api/writer-profiles", dependencies=[Depends(check_authenticated)])
+def create_writer_profile(profile: WriterProfileSchema):
+    db = SessionLocal()
+    try:
+        profile_id = str(uuid.uuid4())
+        
+        # If this is marked as default, unset other defaults
+        if profile.is_default:
+            db.query(WriterProfile).filter(WriterProfile.user_id == "admin").update({"is_default": False})
+            
+        new_profile = WriterProfile(
+            id=profile_id,
+            user_id="admin",
+            name=profile.name,
+            tone_description=profile.tone_description,
+            sample_text=profile.sample_text,
+            is_default=profile.is_default
+        )
+        db.add(new_profile)
+        db.commit()
+        return {"status": "success", "id": profile_id}
+    finally:
+        db.close()
+
+@app.put("/api/writer-profiles/{profile_id}", dependencies=[Depends(check_authenticated)])
+def update_writer_profile(profile_id: str, profile: WriterProfileSchema):
+    db = SessionLocal()
+    try:
+        db_profile = db.query(WriterProfile).filter(WriterProfile.id == profile_id, WriterProfile.user_id == "admin").first()
+        if not db_profile:
+            raise HTTPException(status_code=404, detail="Writer profile not found")
+            
+        # If this is marked as default, unset other defaults
+        if profile.is_default:
+            db.query(WriterProfile).filter(WriterProfile.user_id == "admin").update({"is_default": False})
+            
+        db_profile.name = profile.name
+        db_profile.tone_description = profile.tone_description
+        db_profile.sample_text = profile.sample_text
+        db_profile.is_default = profile.is_default
+        db.commit()
+        return {"status": "success"}
+    finally:
+        db.close()
+
+@app.delete("/api/writer-profiles/{profile_id}", dependencies=[Depends(check_authenticated)])
+def delete_writer_profile(profile_id: str):
+    db = SessionLocal()
+    try:
+        db_profile = db.query(WriterProfile).filter(WriterProfile.id == profile_id, WriterProfile.user_id == "admin").first()
+        if not db_profile:
+            raise HTTPException(status_code=404, detail="Writer profile not found")
+        db.delete(db_profile)
+        db.commit()
+        return {"status": "success"}
+    finally:
+        db.close()
+
+
 
 
 # Initialize OpenRouter Client
@@ -211,9 +433,7 @@ async def handle_brief_submit(
         "slides": stage1_output.get("outline", [])
     }
 
-    state_file = os.path.join(gen_path, "state.json")
-    with open(state_file, "w", encoding="utf-8") as f:
-        json.dump(state, f, indent=4, ensure_ascii=False)
+    db_save_carousel_state(generation_id, state)
 
     return RedirectResponse(
         url=f"/generation/{generation_id}/outline",
@@ -222,14 +442,9 @@ async def handle_brief_submit(
 
 @app.get("/generation/{generation_id}/outline", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def screen2_outline(request: Request, generation_id: str):
-    gen_path = os.path.join(GENERATIONS_DIR, generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="Generation data not found.")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     return render_template("screen2_outline.html", request, {
             "generation_id": generation_id,
@@ -249,14 +464,9 @@ async def handle_outline_approve(
     design_system: str = Form(...),
     format: str = Form(...),
 ):
-    gen_path = os.path.join(GENERATIONS_DIR, generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="Generation data not found.")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     # 1. Parse slide inputs submitted from the outline editor screen
     form_data = await request.form()
@@ -318,8 +528,7 @@ async def handle_outline_approve(
          raise HTTPException(status_code=500, detail=f"Stage 2 Humanization failed: {str(e)}")
 
     # 3. Save final generated state
-    with open(state_file, "w", encoding="utf-8") as f:
-        json.dump(state, f, indent=4, ensure_ascii=False)
+    db_save_carousel_state(generation_id, state)
 
     return RedirectResponse(
         url=f"/generation/{generation_id}/render",
@@ -328,14 +537,9 @@ async def handle_outline_approve(
 
 @app.get("/generation/{generation_id}/render", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def screen3_render(request: Request, generation_id: str):
-    gen_path = os.path.join(GENERATIONS_DIR, generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="Generation data not found.")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     # Stringify the slides content so we can parse it in client-side javascript
     slides_json = json.dumps({"slides": state["slides"]})
@@ -363,14 +567,9 @@ class SlideRegenOutlineRequest(BaseModel):
 
 @app.post("/api/regenerate-slide-outline", dependencies=[Depends(check_authenticated)])
 async def api_regenerate_slide_outline(req: SlideRegenOutlineRequest):
-    gen_path = os.path.join(GENERATIONS_DIR, req.generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(req.generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="State not found")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     # Find the target slide
     slide_idx = -1
@@ -429,8 +628,7 @@ Respond with a JSON object containing exactly three fields:
         
         # Save back to state
         state["slides"][slide_idx] = new_slide
-        with open(state_file, "w", encoding="utf-8") as f:
-            json.dump(state, f, indent=4, ensure_ascii=False)
+        db_save_carousel_state(req.generation_id, state)
 
         return new_slide
 
@@ -441,14 +639,9 @@ class SaveEditsRequest(BaseModel):
 
 @app.post("/api/save-slide-edits", dependencies=[Depends(check_authenticated)])
 async def api_save_slide_edits(req: SaveEditsRequest):
-    gen_path = os.path.join(GENERATIONS_DIR, req.generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(req.generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="State not found")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     state["slides"] = req.slides
     state["brief"]["format"] = req.format
@@ -466,14 +659,9 @@ class SlideRegenCopyRequest(BaseModel):
 
 @app.post("/api/regenerate-slide-copy", dependencies=[Depends(check_authenticated)])
 async def api_regenerate_slide_copy(req: SlideRegenCopyRequest):
-    gen_path = os.path.join(GENERATIONS_DIR, req.generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(req.generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="State not found")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     if req.slide_index < 0 or req.slide_index >= len(state["slides"]):
         raise HTTPException(status_code=400, detail="Invalid slide index")
@@ -533,8 +721,7 @@ Respond with a JSON object containing:
         if "stat" in new_copy:
             state["slides"][req.slide_index]["stat"] = new_copy["stat"]
 
-        with open(state_file, "w", encoding="utf-8") as f:
-            json.dump(state, f, indent=4, ensure_ascii=False)
+        db_save_carousel_state(req.generation_id, state)
 
         return new_copy
 
@@ -544,14 +731,9 @@ Respond with a JSON object containing:
 
 @app.get("/generation/{generation_id}/print", response_class=HTMLResponse, dependencies=[Depends(check_authenticated)])
 async def print_layout(request: Request, generation_id: str, format: str = "1080x1350"):
-    gen_path = os.path.join(GENERATIONS_DIR, generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="Generation data not found.")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     return render_template("print.html", request, {
             "slides": state["slides"],
@@ -563,14 +745,9 @@ async def print_layout(request: Request, generation_id: str, format: str = "1080
 
 @app.get("/generation/{generation_id}/download", dependencies=[Depends(check_authenticated)])
 async def download_pdf(generation_id: str, format: str = "1080x1350"):
-    gen_path = os.path.join(GENERATIONS_DIR, generation_id)
-    state_file = os.path.join(gen_path, "state.json")
-    
-    if not os.path.exists(state_file):
+    state = db_get_carousel_state(generation_id)
+    if not state:
         raise HTTPException(status_code=404, detail="Generation data not found.")
-
-    with open(state_file, "r", encoding="utf-8") as f:
-        state = json.load(f)
 
     # Determine canvas aspect ratios
     if format == "1080x1440":
@@ -629,6 +806,12 @@ async def post_design_settings(request: Request, content: str = Form(...)):
 # Startup check script
 @app.on_event("startup")
 async def startup_event():
+    from database import seed_default_data
+    try:
+        seed_default_data()
+    except Exception as e:
+        print(f"Error seeding database: {e}")
+        
     key = os.getenv("OPENROUTER_API_KEY", "")
     if not key.strip():
         print("*" * 60)
