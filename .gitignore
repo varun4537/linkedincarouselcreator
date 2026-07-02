@@ -21,6 +21,5 @@ generations/
 # Binary/Generated files to exclude from Git (especially for Hugging Face)
 /*.pdf
 /*.html
-logo_base64.txt
 *.db
 *.sqlite

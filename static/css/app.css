@@ -601,3 +601,35 @@ textarea {
     color: var(--text-primary);
     letter-spacing: -0.01em;
 }
+
+/* Responsive media queries for smaller screens & laptop viewports */
+@media (max-width: 1400px) {
+    .sidebar {
+        width: 230px;
+        padding: 30px 18px;
+    }
+    .main-content {
+        margin-left: 230px;
+        padding: 30px 30px;
+    }
+    .screen3-grid {
+        grid-template-columns: 1fr 400px;
+        gap: 24px;
+    }
+    .editor-pane {
+        padding: 24px;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 1150px) {
+    .screen3-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    .carousel-preview-pane {
+        position: relative;
+        top: 0;
+    }
+}
+
