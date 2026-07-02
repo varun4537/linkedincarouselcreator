@@ -757,6 +757,10 @@ async def download_pdf(generation_id: str, format: str = "1080x1350"):
     else:
         width_px, height_px = (1080, 1080)
 
+    # Ensure generations output directory exists
+    gen_path = os.path.join(GENERATIONS_DIR, generation_id)
+    os.makedirs(gen_path, exist_ok=True)
+
     # Local print URL
     port = os.getenv("PORT", "8000")
     print_url = f"http://localhost:{port}/generation/{generation_id}/print?format={format}"
