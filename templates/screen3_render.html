@@ -17,11 +17,14 @@
         display: flex;
     }
     
-    /* Base fallback before JS computes the exact fit-to-viewport scale (see applyPreviewScale in main.js) */
+    /* Base fallback before JS computes the exact fit-to-viewport scale (see applyPreviewScale in main.js).
+       The transform lives on the canvas itself, not this wrapper — see the comment in applyPreviewScale. */
     .scale-wrapper {
+        overflow: hidden;
+    }
+    #carousel-preview-canvas {
         transform: scale(0.3);
         transform-origin: top left;
-        overflow: hidden;
     }
 </style>
 {% endblock %}

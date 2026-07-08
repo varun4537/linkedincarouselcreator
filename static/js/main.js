@@ -482,7 +482,13 @@ function applyPreviewScale() {
 
     const scale = Math.min(availableHeight / nativeHeight, availableWidth / nativeWidth, 0.48);
 
-    wrapper.style.transform = `scale(${scale})`;
+    // The transform goes on the canvas (native-size content), not the wrapper: transforms are
+    // paint-time only and don't shrink the layout box, so putting the scaled-down box size on the
+    // same element being transformed would clip the native-size canvas down to a tiny corner
+    // before the scale even applied. The wrapper stays as a plain frame sized to the final visual
+    // footprint; the canvas scales down to fit inside it exactly.
+    canvas.style.transform = `scale(${scale})`;
+    canvas.style.transformOrigin = "top left";
     wrapper.style.width = `${Math.round(nativeWidth * scale)}px`;
     wrapper.style.height = `${Math.round(nativeHeight * scale)}px`;
 }
