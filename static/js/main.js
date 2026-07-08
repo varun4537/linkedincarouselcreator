@@ -228,8 +228,12 @@ function initRenderScreen() {
                 previewContainer.classList.add("canvas-square");
             }
             updateCarouselPosition();
+            applyPreviewScale();
         });
     }
+
+    applyPreviewScale();
+    window.addEventListener("resize", applyPreviewScale);
 
     // Navigation Buttons
     const prevBtn = document.getElementById("prev-slide");
@@ -442,6 +446,45 @@ function initRenderScreen() {
 
     // Set initial position
     updateCarouselPosition();
+}
+
+// Scales the 1080px-wide native canvas down to fit inside the preview pane's
+// available viewport space, replacing the old fixed-percentage transform hack
+// that didn't adapt to actual laptop screen heights.
+function applyPreviewScale() {
+    const wrapper = document.querySelector(".scale-wrapper");
+    const canvas = document.getElementById("carousel-preview-canvas");
+    const pane = document.querySelector(".carousel-preview-pane");
+    if (!wrapper || !canvas || !pane) return;
+
+    let nativeWidth = 1080;
+    let nativeHeight = 1350;
+    if (canvas.classList.contains("canvas-portrait-1440")) {
+        nativeHeight = 1440;
+    } else if (canvas.classList.contains("canvas-square")) {
+        nativeHeight = 1080;
+    }
+
+    // Measure the real chrome around the canvas (info bar, nav controls, dots) instead of
+    // guessing a fixed pixel offset, so the fit stays accurate across screen sizes and layout tweaks.
+    const paneTop = pane.getBoundingClientRect().top;
+    const infoBar = pane.firstElementChild;
+    const controls = document.querySelector(".carousel-controls");
+    const dots = document.querySelector(".indicator-dots");
+    const gap = parseFloat(getComputedStyle(pane).rowGap) || 28;
+
+    const chromeAbove = (infoBar && infoBar !== wrapper) ? infoBar.offsetHeight + gap : 0;
+    const chromeBelow = (controls ? controls.offsetHeight + gap : 0) + (dots ? dots.offsetHeight + gap : 0);
+    const BOTTOM_SAFETY_MARGIN = 40; // leaves room for the page's own bottom padding
+
+    const availableHeight = Math.max(window.innerHeight - paneTop - chromeAbove - chromeBelow - BOTTOM_SAFETY_MARGIN, 240);
+    const availableWidth = Math.max(pane.clientWidth - 16, 200);
+
+    const scale = Math.min(availableHeight / nativeHeight, availableWidth / nativeWidth, 0.48);
+
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.width = `${Math.round(nativeWidth * scale)}px`;
+    wrapper.style.height = `${Math.round(nativeHeight * scale)}px`;
 }
 
 function updateCarouselPosition() {

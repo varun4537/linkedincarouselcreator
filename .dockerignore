@@ -7,7 +7,6 @@ __pycache__
 generations/
 *.pdf
 *.html
-logo_base64.txt
 test_flow.py
 test_auth.py
 debug_auth.py

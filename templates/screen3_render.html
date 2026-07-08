@@ -17,24 +17,11 @@
         display: flex;
     }
     
+    /* Base fallback before JS computes the exact fit-to-viewport scale (see applyPreviewScale in main.js) */
     .scale-wrapper {
-        transform: scale(0.48);
-        transform-origin: top center;
-        margin-bottom: -52%; /* Offset the height collapse from scaling */
-    }
-    
-    @media (max-width: 1400px) {
-        .scale-wrapper {
-            transform: scale(0.38);
-            margin-bottom: -62%;
-        }
-    }
-    
-    @media (max-width: 1150px) {
-        .scale-wrapper {
-            transform: scale(0.48);
-            margin-bottom: -52%;
-        }
+        transform: scale(0.3);
+        transform-origin: top left;
+        overflow: hidden;
     }
 </style>
 {% endblock %}
