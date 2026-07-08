@@ -59,7 +59,7 @@
                         <!-- CONTENT -->
                         <div class="content-slide">
                             {% if slide.job == "Cover" %}
-                                <div class="kicker">Query Fan-Out</div>
+                                <div class="kicker">{{ topic|short_kicker }}</div>
                                 <h1 class="headline-text">{{ slide.headline|safe }}</h1>
                                 <div class="rule"></div>
                                 <div class="body-text">{{ slide.body }}</div>
@@ -67,7 +67,7 @@
                                 <h1 class="headline-text" style="font-size: 120px;">{{ slide.headline|safe }}</h1>
                                 <div class="rule"></div>
                                 <div class="body-text">{{ slide.body }}</div>
-                                <div class="cta">Want a fan-out audit? DM "FANOUT"</div>
+                                <div class="cta">{{ topic|dynamic_cta }}</div>
                                 <div class="closer" style="margin-top: 28px;">Save this before your next content sprint.</div>
                                 <div class="icons">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.7; vertical-align: middle; margin-right: 8px;"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>

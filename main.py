@@ -52,15 +52,8 @@ if os.path.exists(env_path):
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Load E2E logo base64 if it exists
-LOGO_BASE64 = ""
-logo_path = os.path.join(BASE_DIR, "logo_base64.txt")
-if os.path.exists(logo_path):
-    try:
-        with open(logo_path, "r", encoding="utf-8") as f:
-            LOGO_BASE64 = f.read().strip()
-    except Exception as e:
-        print(f"Error loading logo: {e}")
+# Use static logo route to make rendering and printing 100% reliable and fast
+LOGO_BASE64 = "/static/logo.png"
 
 def parse_body_list(body_text: str):
     if not body_text:
@@ -81,6 +74,31 @@ def parse_body_list(body_text: str):
     return None
 
 templates.env.filters["parse_body_list"] = parse_body_list
+
+def get_short_kicker(topic: str) -> str:
+    if not topic:
+        return "E2E Playbook"
+    if len(topic) > 40:
+        return topic[:37].strip() + "..."
+    return topic
+
+def get_dynamic_cta(topic: str) -> str:
+    if not topic:
+        return 'Want to learn more? DM us.'
+    t = topic.lower()
+    if "fan-out" in t or "fanout" in t:
+        return 'Want a fan-out audit? DM "FANOUT"'
+    elif "seo" in t:
+        return 'Want an SEO audit? DM "SEO"'
+    elif "conversion" in t or "retail" in t or "ecommerce" in t or "e-commerce" in t:
+        return 'Want a conversion audit? DM "AUDIT"'
+    elif "speed" in t or "performance" in t:
+        return 'Want a speed audit? DM "SPEED"'
+    else:
+        return 'DM "GROW" to scale your traffic'
+
+templates.env.filters["short_kicker"] = get_short_kicker
+templates.env.filters["dynamic_cta"] = get_dynamic_cta
 
 import inspect
 
@@ -552,7 +570,8 @@ async def screen3_render(request: Request, generation_id: str):
             "urls": state["brief"]["urls"],
             "stage2_model": state["stage2_model"],
             "design_system": state["brief"]["design_system"],
-            "logo_base64": LOGO_BASE64
+            "logo_base64": LOGO_BASE64,
+            "topic": state["brief"].get("topic", "")
         })
 
 # -------------------------------------------------------------
@@ -740,7 +759,8 @@ async def print_layout(request: Request, generation_id: str, format: str = "1080
             "format": format,
             "urls": state["brief"]["urls"],
             "design_system": state["brief"]["design_system"],
-            "logo_base64": LOGO_BASE64
+            "logo_base64": LOGO_BASE64,
+            "topic": state["brief"].get("topic", "")
         })
 
 @app.get("/generation/{generation_id}/download", dependencies=[Depends(check_authenticated)])
@@ -810,6 +830,30 @@ async def post_design_settings(request: Request, content: str = Form(...)):
 # Startup check script
 @app.on_event("startup")
 async def startup_event():
+    import base64
+    # Ensure static directory exists
+    os.makedirs(os.path.join(BASE_DIR, "static"), exist_ok=True)
+    logo_png_path = os.path.join(BASE_DIR, "static", "logo.png")
+    
+    # If the logo image does not exist, build it from logo_base64.txt
+    if not os.path.exists(logo_png_path):
+        txt_path = os.path.join(BASE_DIR, "logo_base64.txt")
+        if os.path.exists(txt_path):
+            try:
+                with open(txt_path, "r", encoding="utf-8") as f:
+                    data = f.read().strip()
+                # Remove data URI prefix if present
+                if data.startswith("data:image/png;base64,"):
+                    data = data[len("data:image/png;base64,"):]
+                elif data.startswith("data:image/jpeg;base64,"):
+                    data = data[len("data:image/jpeg;base64,"):]
+                img_bytes = base64.b64decode(data)
+                with open(logo_png_path, "wb") as f:
+                    f.write(img_bytes)
+                print("Decoded and wrote static logo PNG successfully on startup.")
+            except Exception as e:
+                print(f"Error decoding startup logo: {e}")
+
     from database import seed_default_data
     try:
         seed_default_data()

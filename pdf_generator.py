@@ -26,6 +26,12 @@ async def render_html_to_pdf(
         await page.goto(url, wait_until="networkidle")
         await page.emulate_media(media="screen")
         
+        # Ensure all images are fully loaded and decoded before printing to PDF
+        await page.evaluate("() => Promise.all(Array.from(document.images).map(img => img.complete ? Promise.resolve() : new Promise(resolve => { img.onload = resolve; img.onerror = resolve; })))")
+        
+        # Add a short timeout to let rendering settle
+        await page.wait_for_timeout(1000)
+        
         # Configure output dimensions in pixels to preserve crispness
         # Note: Playwright takes print dimensions in px/in/mm. We pass string with px.
         await page.pdf(
